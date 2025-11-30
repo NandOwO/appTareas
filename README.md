@@ -23,17 +23,18 @@
 - [Características Principales](#-características-principales)
 - [Tecnologías](#️-tecnologías)
 - [Requisitos Previos](#-requisitos-previos)
-- [Instalación y Configuración](#-instalación-y-configuración)
+- [Inicio Rápido](#-inicio-rápido)
 - [Uso de la Aplicación](#-uso-de-la-aplicación)
-- [Documentación](#-documentación)
 - [Estructura del Proyecto](#-estructura-del-proyecto)
+- [Configuración Avanzada](#-configuración-avanzada)
 - [Solución de Problemas](#-solución-de-problemas)
+- [Documentación](#-documentación)
 
 ---
 
 ## 🎯 Descripción
 
-**Synapse** es un sistema de gestión de tareas empresarial diseñado para facilitar la organización, asignación y seguimiento de tareas en equipos de trabajo. La aplicación permite a los gerentes crear y asignar tareas a empleados individuales o equipos completos, con notificaciones automáticas por email y adjuntos de archivos.
+**Synapse** es un sistema de gestión de tareas empresarial diseñado para facilitar la organización, asignación y seguimiento de tareas en equipos de trabajo. La aplicación permite a los gerentes crear y asignar tareas a empleados individuales o equipos completos, con notificaciones automáticas por email y soporte para adjuntos de archivos.
 
 ### ¿Para quién es este sistema?
 
@@ -55,7 +56,7 @@
 #### 👨‍💼 Administrador
 - Gestión completa de usuarios
 - Crear, editar y eliminar usuarios
-- Asignar roles
+- Asignar roles y permisos
 - Gestión de equipos
 - Acceso a todos los módulos
 
@@ -68,6 +69,7 @@
 - Asignar tareas a empleados o equipos
 - Ver dashboard de tareas
 - Adjuntar archivos a tareas
+- Recibir notificaciones de tareas completadas
 
 </td>
 <td width="33%">
@@ -91,6 +93,7 @@
 - ✅ **Estados**: Pendiente, En Progreso, Completada, Pausada
 - ✅ **Prioridades**: Baja, Media, Alta
 - ✅ **Edición completa**: Modificar todos los campos de una tarea
+- ✅ **Archivar tareas**: Soft delete para mantener historial
 - ✅ **Visualización detallada**: Ver toda la información de una tarea
 
 ### 👥 Gestión de Equipos
@@ -98,25 +101,25 @@
 - ✅ **Crear equipos** con nombre y descripción
 - ✅ **Asignar miembros** de forma visual
 - ✅ **Líder de equipo**: Cada equipo tiene un gerente asignado
-- ✅ **Editar equipos**: Modificar nombre y descripción
+- ✅ **Editar equipos**: Modificar nombre, descripción y miembros
 - ✅ **Ver miembros**: Lista completa de integrantes
 - ✅ **Eliminar equipos**: Con confirmación de seguridad
 
 ### 📧 Notificaciones Automáticas
 
-- ✅ **Email al asignar tarea**: Notificación automática
-- ✅ **Asignación individual**: Email al empleado
-- ✅ **Asignación a equipo**: Email a todos los miembros
-- ✅ **Adjuntos incluidos**: Archivos e imágenes en el email
-- ✅ **Información completa**: Título, descripción, fecha límite
+- ✅ **Email al asignar tarea**: Notificación automática con detalles completos
+- ✅ **Asignación individual**: Email personalizado al empleado
+- ✅ **Asignación a equipo**: Email a todos los miembros del equipo
+- ✅ **Tarea completada**: Notificación al gerente cuando un empleado completa una tarea
+- ✅ **Templates HTML profesionales**: Emails con diseño moderno y responsive
 
 ### 🎨 Interfaz de Usuario
 
-- ✅ **Diseño moderno**: Interfaz limpia y profesional
-- ✅ **FlatLaf Look and Feel**: Apariencia moderna
-- ✅ **Responsive**: Adaptable a diferentes tamaños
-- ✅ **Iconos intuitivos**: Fácil navegación
+- ✅ **Diseño moderno**: Interfaz limpia y profesional con FlatLaf
+- ✅ **Componentes personalizados**: Pills, toggles, renderers personalizados
+- ✅ **Iconos intuitivos**: Navegación clara con iconos SVG
 - ✅ **Notificaciones toast**: Feedback visual inmediato
+- ✅ **Validaciones en tiempo real**: Formularios con validación de datos
 
 ---
 
@@ -125,18 +128,20 @@
 ### Backend
 - **Java 11+**: Lenguaje principal
 - **JDBC**: Conexión a base de datos
-- **BCrypt**: Encriptación de contraseñas
-- **JavaMail**: Envío de emails
+- **BCrypt**: Encriptación segura de contraseñas
+- **JavaMail**: Envío de emails con HTML
 
 ### Frontend
-- **Java Swing**: Interfaz gráfica
+- **Java Swing**: Interfaz gráfica de usuario
 - **FlatLaf**: Look and Feel moderno
-- **MigLayout**: Gestión de layouts
+- **MigLayout**: Gestión avanzada de layouts
 - **Raven DateTime**: Selector de fechas
+- **Timing Framework**: Animaciones suaves
 
 ### Base de Datos
 - **PostgreSQL 15**: Base de datos relacional
 - **Docker**: Contenedorización de BD
+- **pgAdmin 4**: Herramienta de administración
 
 ### Herramientas
 - **Apache Ant**: Build tool
@@ -156,95 +161,153 @@ Antes de comenzar, asegúrate de tener instalado:
 
 ---
 
-## 🚀 Instalación y Configuración
+## 🚀 Inicio Rápido
 
-### Paso 1: Clonar o Descargar el Proyecto
+### 1. Iniciar la Base de Datos
 
+#### Windows:
 ```bash
-git clone https://github.com/tu-usuario/synapse-tareas.git
-cd synapse-tareas
+start-database.bat
 ```
 
-O descarga el ZIP y extráelo.
+#### Linux/Mac:
+```bash
+docker-compose up -d
+```
 
-### Paso 2: Iniciar la Base de Datos
+Esto iniciará:
+- **PostgreSQL** en el puerto `5433`
+- **pgAdmin** en `http://localhost:5050`
 
-#### Opción A: Usando el script (Recomendado)
+### 2. Acceder a pgAdmin (Opcional)
+
+Si deseas administrar la base de datos visualmente:
+
+1. Abre tu navegador en `http://localhost:5050`
+2. Inicia sesión con:
+   - **Email**: `admin@synapse.com`
+   - **Password**: `admin123`
+3. Conecta el servidor PostgreSQL:
+   - Clic derecho en "Servers" → "Register" → "Server"
+   - **General** → Name: `Synapse DB`
+   - **Connection**:
+     - Host: `postgres`
+     - Port: `5432`
+     - Database: `synapse_db`
+     - Username: `postgres`
+     - Password: `postgres`
+
+### 3. Ejecutar la Aplicación
 
 ```bash
+ant clean run
+```
+
+### 4. Iniciar Sesión
+
+Credenciales por defecto:
+- **Email**: `admin@synapse.com`
+- **Password**: `admin123`
+
+---
+
+## 💡 Uso de la Aplicación
+
+### Como Administrador
+
+1. **Gestionar Usuarios**:
+   - Ve a "Usuarios"
+   - Crear nuevo usuario (se genera contraseña automática y se envía por email)
+   - Editar información de usuarios existentes
+   - Activar/desactivar usuarios con toggle
+   - Asignar roles: Empleado, Gerente, Administrador
+
+2. **Gestionar Equipos**:
+   - Ve a "Equipos"
+   - Crear equipos con nombre y descripción
+   - Asignar miembros y líder
+   - Editar o eliminar equipos
+
+### Como Gerente
+
+1. **Crear Tareas**:
+   - Ve a "Tareas" → "Crear Nueva Tarea"
+   - Completa los campos:
+     - Título y descripción
+     - Fecha límite
+     - Prioridad (Baja, Media, Alta)
    - Selecciona tipo de asignación:
      - **Individual**: Asigna a un empleado específico
      - **Equipo**: Asigna a todos los miembros de un equipo
    - Adjunta archivos/imágenes (opcional)
    - Clic en "Crear Tarea"
-   - ✉️ Se envía email automáticamente
+   - ✉️ Se envía email automáticamente a los asignados
 
 2. **Gestionar Equipos**:
    - Ve a "Mis Equipos"
    - Crea, edita o elimina equipos
-   - Ver miembros de cada equipo
+   - Asigna miembros
+   - Ver tareas del equipo
 
 3. **Ver Tareas**:
    - Dashboard muestra todas las tareas creadas
    - Editar tareas existentes
    - Ver detalles completos
+   - Archivar tareas completadas
 
 ### Como Empleado
 
 1. **Ver Tareas Asignadas**:
-   - Dashboard muestra tus tareas
-   - Filtrar por estado o prioridad
+   - Dashboard muestra tus tareas activas
+   - Ver tareas por estado o prioridad
 
 2. **Actualizar Tareas**:
-   - Cambiar estado (Pendiente → En Progreso → Completada)
-   - Ver detalles completos
-   - Ver archivos adjuntos (enviados por email)
+   - Cambiar estado:
+     - **Pendiente** → Clic en "Iniciar Tarea" → **En Progreso**
+     - **En Progreso** → Clic en "Completar" → **Completada**
+     - **En Progreso** → Clic en "Pausar" → **Pausada**
+   - Ver detalles completos de cada tarea
+   - El gerente recibe email cuando completas una tarea
 
 3. **Gestionar Perfil**:
    - Actualizar información personal
    - Cambiar contraseña
-
----
-
-## 📚 Documentación
-
-Para más información detallada, consulta:
-
-- 📖 **[Manual de Usuario](docs/MANUAL_USUARIO.md)** - Guía completa de uso
-- 🏗️ **[Documentación Técnica](docs/DOCUMENTACION_TECNICA.md)** - Arquitectura y diseño
-- 📊 **[Diagramas UML](docs/DIAGRAMAS_UML.md)** - Diagramas del sistema
-- 🐳 **[Guía Docker](docker/README.md)** - Configuración de base de datos
+   - Ver código de empleado
 
 ---
 
 ## 📁 Estructura del Proyecto
 
 ```
-synapse-tareas/
+appTareas/
 ├── src/                          # Código fuente Java
 │   └── com/synapse/
-│       ├── core/                 # Modelos y servicios
-│       │   ├── models/           # Entidades (Usuario, Tarea, Equipo)
-│       │   └── services/         # Lógica de negocio
-│       ├── data/                 # Capa de datos
+│       ├── core/                 # Núcleo de la aplicación
+│       │   ├── models/           # Modelos de datos (Usuario, Tarea, Equipo)
+│       │   └── services/         # Servicios de negocio
+│       │       └── notifications/ # Sistema de notificaciones
+│       ├── data/                 # Capa de acceso a datos
 │       │   ├── dao/              # Data Access Objects
-│       │   └── database/         # Conexión a BD
+│       │   └── database/         # Conexión a BD (Singleton)
 │       ├── ui/                   # Interfaz de usuario
-│       │   ├── views/            # Vistas por rol
-│       │   └── components/       # Componentes reutilizables
-│       └── utils/                # Utilidades
-├── resources/                    # Recursos
+│       │   ├── views/            # Vistas por rol (admin, gerente, empleado)
+│       │   ├── components/       # Componentes reutilizables
+│       │   └── lib/              # Librerías UI personalizadas
+│       └── utils/                # Utilidades (PasswordBuilder, etc.)
+├── resources/                    # Recursos de la aplicación
 │   ├── database/                 # Scripts SQL
-│   └── images/                   # Imágenes de la app
-├── lib/                          # Librerías externas
+│   └── images/                   # Iconos e imágenes
+├── lib/                          # Librerías externas (.jar)
 ├── docker/                       # Configuración Docker
-│   ├── init-scripts/             # Scripts de inicialización
+│   ├── init-scripts/             # Scripts de inicialización de BD
+│   │   └── 01-init-db.sql        # Schema y datos iniciales
 │   └── README.md                 # Documentación Docker
-├── docs/                         # Documentación
+├── Avance03_Patrones/            # Documentación académica
 ├── docker-compose.yml            # Configuración Docker Compose
 ├── build.xml                     # Configuración Apache Ant
-├── start-database.bat            # Script inicio BD
-└── stop-database.bat             # Script detener BD
+├── start-database.bat            # Script para iniciar BD (Windows)
+├── stop-database.bat             # Script para detener BD (Windows)
+└── README.md                     # Este archivo
 ```
 
 ---
@@ -267,10 +330,25 @@ private static final String EMAIL_PASSWORD = "tu-contraseña-app";
 
 ### Cambiar Puerto de Base de Datos
 
-Si necesitas cambiar el puerto, edita:
+Si el puerto 5433 está en uso:
 
-1. `docker-compose.yml` - Cambia `"5433:5432"`
-2. `src/com/synapse/data/database/Conexion.java` - Cambia `PUERTO = "5433"`
+1. Edita `docker-compose.yml`:
+```yaml
+ports:
+  - "5434:5432"  # Cambia 5433 por 5434
+```
+
+2. Edita `src/com/synapse/data/database/Conexion.java`:
+```java
+private static final String PUERTO = "5434";
+```
+
+### Reiniciar Base de Datos con Datos Limpios
+
+```bash
+docker-compose down -v  # Elimina volúmenes
+docker-compose up -d    # Recrea con datos iniciales
+```
 
 ---
 
@@ -278,11 +356,11 @@ Si necesitas cambiar el puerto, edita:
 
 ### La base de datos no inicia
 
-**Problema**: Error al ejecutar `docker-compose up`
+**Síntomas**: Error al ejecutar `docker-compose up`
 
 **Solución**:
 ```bash
-# Ver logs
+# Ver logs para identificar el problema
 docker-compose logs postgres
 
 # Reiniciar Docker Desktop
@@ -293,20 +371,14 @@ docker-compose up -d
 
 ### Puerto 5433 ya está en uso
 
-**Solución**: Cambia el puerto en `docker-compose.yml`:
-```yaml
-ports:
-  - "5434:5432"  # Usa 5434 en lugar de 5433
-```
-
-Y actualiza `Conexion.java` con el nuevo puerto.
+**Solución**: Ver sección [Cambiar Puerto de Base de Datos](#cambiar-puerto-de-base-de-datos)
 
 ### Error de conexión a la base de datos
 
 **Verificar**:
 1. Docker está ejecutándose: `docker ps`
 2. Base de datos está activa: `docker-compose ps`
-3. Puerto correcto en `Conexion.java`
+3. Puerto correcto en `Conexion.java` (debe ser 5433)
 
 **Solución**:
 ```bash
@@ -319,14 +391,25 @@ docker-compose restart
 ```bash
 # Limpiar y recompilar
 ant clean
+ant compile
+ant run
+```
 
-Las contribuciones son bienvenidas. Por favor:
+### Emails no se envían
 
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+**Verificar**:
+1. Configuración SMTP correcta en `EmailService.java`
+2. Contraseña de aplicación válida (no la contraseña normal de Gmail)
+3. Conexión a internet activa
+
+---
+
+## 📚 Documentación
+
+Para más información detallada, consulta:
+
+- 📖 **[Guía Docker](docker/README.md)** - Configuración detallada de PostgreSQL y pgAdmin
+- 📊 **[Documentación de Patrones](Avance03_Patrones/Avance03_Patrones.md)** - Patrones de diseño implementados
 
 ---
 
