@@ -76,12 +76,11 @@ public class DashbordEmpleado extends javax.swing.JPanel {
     private void cargarDatosDashboard() {
         int iconSize = 24;
 
-        ImageIcon iconUsuario = new FlatSVGIcon("apptareas/icon/user.svg", iconSize, iconSize);
-        ImageIcon iconTareas = new FlatSVGIcon("apptareas/icon/chart-line-green.svg", iconSize, iconSize);
-        ImageIcon iconPendientes = new FlatSVGIcon("apptareas/icon/box-orange.svg", iconSize, iconSize);
-        ImageIcon iconVencidas = new FlatSVGIcon("apptareas/icon/alert-triangle-red.svg", iconSize, iconSize);
+        ImageIcon iconUsuario = new FlatSVGIcon("icons/general/box-orange.svg", iconSize, iconSize);
+        ImageIcon iconTareas = new FlatSVGIcon("icons/general/total.svg", iconSize, iconSize);
+        ImageIcon iconPendientes = new FlatSVGIcon("icons/general/vencidas.svg", iconSize, iconSize);
+        ImageIcon iconVencidas = new FlatSVGIcon("icons/general/user.svg", iconSize, iconSize);
 
-        // Cargar datos reales del backend con SwingWorker
         javax.swing.SwingWorker<DashboardData, Void> worker = new javax.swing.SwingWorker<DashboardData, Void>() {
             @Override
             protected DashboardData doInBackground() throws Exception {
@@ -122,7 +121,6 @@ public class DashbordEmpleado extends javax.swing.JPanel {
                 try {
                     DashboardData data = get();
 
-                    // Configurar las cards con datos reales
                     card1.setTitle("Mis Tareas");
                     card1.setValue(data.total);
                     card1.setIcon(iconTareas);
@@ -139,7 +137,6 @@ public class DashbordEmpleado extends javax.swing.JPanel {
                     card4.setValue(data.vencidas);
                     card4.setIcon(iconVencidas);
 
-                    // Actualizar paneles de resumen
                     actualizarPanelesResumen(data);
 
                 } catch (Exception e) {

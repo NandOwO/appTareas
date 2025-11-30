@@ -74,6 +74,7 @@ public class Application extends javax.swing.JFrame {
         FlatAnimatedLafChange.showSnapshot();
         app.setContentPane(app.loginForm);
         app.loginForm.applyComponentOrientation(app.getComponentOrientation());
+        app.loginForm.limpiarPassword(); // Limpia solo la contraseña, mantiene el email
         SwingUtilities.updateComponentTreeUI(app.loginForm);
         FlatAnimatedLafChange.hideSnapshotWithAnimation();
     }
@@ -83,7 +84,8 @@ public class Application extends javax.swing.JFrame {
     }
 
     @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc="Generated
+    // Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -91,19 +93,17 @@ public class Application extends javax.swing.JFrame {
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 719, Short.MAX_VALUE)
-        );
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGap(0, 719, Short.MAX_VALUE));
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 521, Short.MAX_VALUE)
-        );
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGap(0, 521, Short.MAX_VALUE));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     public static void main(String args[]) {
-        
+
         TaskScheduler scheduler = new TaskScheduler();
 
         // Registrar los observadores
@@ -121,7 +121,7 @@ public class Application extends javax.swing.JFrame {
         FlatMacDarkLaf.setup();
         java.awt.EventQueue.invokeLater(() -> {
             app = new Application();
-            //  app.applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+            // app.applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
             app.setVisible(true);
         });
     }

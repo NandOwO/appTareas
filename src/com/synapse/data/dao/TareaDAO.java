@@ -291,7 +291,7 @@ public class TareaDAO {
                 + "LEFT JOIN usuarios asig_u ON au.id_usuario = asig_u.id_usuario "
                 + "LEFT JOIN asignaciones_equipo ae ON t.id_tarea = ae.id_tarea "
                 + "LEFT JOIN equipos asig_e ON ae.id_equipo = asig_e.id_equipo "
-                + "WHERE t.creada_por = ? AND t.archivada = FALSE" // Filtro de Gerente
+                + "WHERE t.creada_por = ? AND t.archivada = FALSE " // Filtro de Gerente
                 + "ORDER BY t.fecha_limite DESC";
 
         try (Connection cn = con.getConnection(); PreparedStatement ps = cn.prepareStatement(sql)) {

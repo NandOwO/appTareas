@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
- */
 package com.synapse.ui.views.login;
 
 import com.formdev.flatlaf.FlatClientProperties;
@@ -18,6 +14,7 @@ import raven.toast.Notifications;
  * @author FERNANDO
  */
 public class FormLogin extends javax.swing.JPanel {
+
     private final MainForm mainform;
 
     /**
@@ -28,12 +25,16 @@ public class FormLogin extends javax.swing.JPanel {
         initComponents();
         panelLogin.putClientProperty(FlatClientProperties.STYLE, ""
                 + "arc:25");
-        bntInicioSesion.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    validarUsuario();
-                }
+
+        txtUsuario.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtcontraseña.requestFocus();
+            }
+        });
+
+        txtcontraseña.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                bntInicioSesion.doClick(); 
             }
         });
     }
@@ -49,12 +50,12 @@ public class FormLogin extends javax.swing.JPanel {
         System.out.println("Email vacío: " + email.isEmpty());
 
         if (password.isEmpty() || email.isEmpty()) {
-            System.out.println("❌ Campos vacíos detectados");
+            System.out.println(" Campos vacíos detectados");
             camposVacios();
             return;
         }
 
-        System.out.println("✅ Campos llenos, intentando login...");
+        System.out.println("Campos llenos, intentando login...");
         UsuarioDAO usuarioDAO = new UsuarioDAO();
         System.out.println("UsuarioDAO creado");
 
@@ -62,11 +63,11 @@ public class FormLogin extends javax.swing.JPanel {
         System.out.println("Resultado login: " + (usuario != null ? "SUCCESS" : "FAIL"));
 
         if (usuario != null) {
-            System.out.println("✅ Login exitoso para: " + usuario.getNombre());
+            System.out.println("Login exitoso para: " + usuario.getNombre());
             mensajeVerificado();
             Application.iniciarSesionUsuario(usuario);
         } else {
-            System.out.println("❌ Login fallido - credenciales incorrectas");
+            System.out.println("Login fallido - credenciales incorrectas");
             rellenoDatosError();
         }
         System.out.println("===================");
@@ -86,6 +87,10 @@ public class FormLogin extends javax.swing.JPanel {
     private void mensajeVerificado() {
         Notifications.getInstance().show(Notifications.Type.SUCCESS, Notifications.Location.TOP_RIGHT,
                 "Bienvenido\nInico de sesion exitoso");
+    }
+
+    public void limpiarPassword() {
+        txtcontraseña.setText("");
     }
 
     /**
@@ -164,11 +169,11 @@ public class FormLogin extends javax.swing.JPanel {
     private void bntInicioSesionActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_bntInicioSesionActionPerformed
         // TODO add your handling code here:
         validarUsuario();
-    }// GEN-LAST:event_bntInicioSesionActionPerformed
+    }
 
     private void bntInicioSesionKeyPressed(java.awt.event.KeyEvent evt) {// GEN-FIRST:event_bntInicioSesionKeyPressed
         // TODO add your handling code here:
-    }// GEN-LAST:event_bntInicioSesionKeyPressed
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private com.synapse.ui.views.login.Background background1;
