@@ -52,10 +52,11 @@ graph TB
 
 ## 2. Diagrama de Clases
 
-### Modelos de Dominio
+### Arquitectura Completa del Sistema
 
 ```mermaid
 classDiagram
+    %% ========== CAPA DE MODELOS ==========
     class Usuario {
         -int idUsuario
         -String nombre
@@ -65,7 +66,7 @@ classDiagram
         -String codigoEmpleado
         -int idRol
         -String nombreRol
-        +Usuario(Builder)
+        +Usuario()
         +getters()
         +setters()
     }
@@ -76,14 +77,16 @@ classDiagram
         -String descripcion
         -Timestamp fechaCreacion
         -Timestamp fechaLimite
-        -int idCreador
+        -int creadaPor
         -int idPrioridad
         -int idEstado
+        -String nombreEstado
+        -String nombrePrioridad
+        -String nombreAsignado
         -Usuario creador
-        -List~Usuario~ usuariosAsignados
-        -List~Equipo~ equiposAsignados
-        -List~Adjunto~ adjuntos
-        +Tarea(Builder)
+        -boolean archivada
+        +Tarea()
+        +Builder()
         +getters()
         +setters()
     }
@@ -112,95 +115,270 @@ classDiagram
         +getters()
         +setters()
     }
-    
-    Usuario "1" -- "*" Tarea : crea
-    Usuario "*" -- "*" Tarea : asignado a
-    Equipo "*" -- "*" Tarea : asignado a
-    Equipo "1" -- "*" Usuario : tiene miembros
-    Tarea "1" -- "*" Adjunto : tiene
-```
 
-### Capa DAO
-
-```mermaid
-classDiagram
-    class TareaDAO {
-        +boolean crear(Tarea)
-        +Tarea obtenerPorId(int)
-        +List~Tarea~ obtenerTodas()
-        +boolean actualizar(Tarea)
-        +boolean eliminar(int)
-        +List~Usuario~ getUsuariosAsignadosPorTarea(int)
-        +List~Equipo~ getEquiposAsignadosPorTarea(int)
-        +boolean asignarUsuario(int, int)
-        +boolean asignarEquipo(int, int)
-    }
-    
-    class UsuarioDAO {
-        +boolean crear(Usuario, String, int)
-        +Usuario obtenerPorId(int)
-        +List~Usuario~ getUsuarios()
-        +boolean actualizar(Usuario)
-        +Usuario login(String, String)
-        +List~Usuario~ getUsuariosPorRol(int)
-    }
-    
-    class EquipoDAO {
-        +int crear(Equipo)
-        +Equipo obtenerPorId(int)
-        +List~Equipo~ getEquipos()
-        +boolean actualizar(Equipo)
-        +boolean eliminar(int)
-        +List~Usuario~ getMiembros(int)
-        +boolean agregarMiembro(int, int)
-        +boolean quitarMiembro(int, int)
-        +List~Equipo~ getEquiposPorLider(int)
-    }
-    
+    %% ========== CAPA DAO ==========
     class Conexion {
         -static Conexion instancia
         -String USUARIO
         -String CONTRASENA
         -String BD
+        -String IP
         -String PUERTO
-        +static getInstance()
-        +Connection getConnection()
+        -Conexion()
+        +static getInstance() Conexion
+        +getConnection() Connection
     }
     
-    TareaDAO ..> Conexion : usa
-    UsuarioDAO ..> Conexion : usa
-    EquipoDAO ..> Conexion : usa
-```
-
-### Servicios
-
-```mermaid
-classDiagram
-    class TareaService {
-        -TareaDAO tareaDAO
-        +boolean crearTareaCompleta(Tarea, Integer, Integer)
-        +boolean actualizarTareaCompleta(Tarea, Integer, Integer)
-        +List~Tarea~ getTareasConDetalles(int)
+    class UsuarioDAO {
+        -Conexion con
+        +crearUsuario(Usuario, String, int) boolean
+        +getUsuarioPorId(int) Usuario
+        +getUsuarios() List~Usuario~
+        +actualizarUsuario(Usuario) boolean
+        +eliminarUsuario(int) boolean
+        +login(String, String) Usuario
+        +cambiarEstadoUsuario(int, boolean) boolean
+        +cambiarContrasena(int, String, String) boolean
+        +getUsuariosPorRol(int) List~Usuario~
     }
     
+    class TareaDAO {
+        -Conexion con
+        +crearTarea(Tarea, Integer, Integer) boolean
+        +getTareasPorUsuario(int) List~Tarea~
+        +getTareasPorEquipo(int) List~Tarea~
+        +getAllTareas() List~Tarea~
+        +getTareasPorGerente(int) List~Tarea~
+        +getTareaPorId(int) Tarea
+        +actualizarTarea(Tarea) boolean
+        +actualizarEstadoTarea(int, int) boolean
+        +eliminarTarea(int) boolean
+        +archivarTarea(int) boolean
+        +buscarTareas(String) List~Tarea~
+        +getTareasArchivadas(int) List~Tarea~
+        +getUsuariosAsignadosPorTarea(int) List~Usuario~
+        +getEquiposAsignadosPorTarea(int) List~Equipo~
+        +buscarTareasProximasAVencer(int) List~Tarea~
+    }
+    
+    class EquipoDAO {
+        -Conexion con
+        +crearEquipo(Equipo) int
+        +getEquipoPorId(int) Equipo
+        +getEquipos() List~Equipo~
+        +getEquiposPorLider(int) List~Equipo~
+        +actualizarEquipo(Equipo) boolean
+        +eliminarEquipo(int) boolean
+        +agregarMiembro(int, int) boolean
+        +eliminarMiembro(int, int) boolean
+        +getMiembros(int) List~Usuario~
+        +getEquiposDelUsuario(int) List~Equipo~
+    }
+
+    %% ========== CAPA DE SERVICIOS ==========
     class EmailService {
-        +boolean enviarEmailAsignacion(Tarea, Usuario, List~File~)
-        +boolean sendEmail(String, String, String, List~File~)
-        +void verificarVencimientos()
+        -String SMTP_HOST
+        -String SMTP_PORT
+        -String EMAIL_FROM
+        -String EMAIL_PASSWORD
+        +sendEmail(String, String, String, List~File~) void
+        +enviarEmailAsignacion(Tarea, Usuario, List~File~) void
+        +enviarEmailAsignacionEquipo(Tarea, Equipo, List~File~) void
     }
     
     class EmailTemplates {
-        +static String getTemplateAsignacionTarea(...)
+        +static getTemplateAsignacionTarea(String, String, String, String, String) String
+        +static getTemplateTareaCompletada(String, String) String
+        +static getTemplateTareaCompletadaPorEmpleado(String, String, String) String
+        +static getTemplateCredenciales(String, String, String) String
     }
     
     class PasswordHasher {
-        +static String hashPassword(String)
-        +static boolean checkPassword(String, String)
+        +static hashPassword(String) String
+        +static checkPassword(String, String) boolean
     }
     
-    TareaService ..> TareaDAO : usa
+    class PasswordBuilder {
+        +static generarContrasena() String
+    }
+    
+    class TaskScheduler {
+        -TareaDAO tareaDAO
+        -List~TaskObserver~ observers
+        +addObserver(TaskObserver) void
+        +removeObserver(TaskObserver) void
+        +notifyObservers(List~Tarea~) void
+        +run() void
+    }
+
+    %% ========== CAPA UI - COMPONENTES ==========
+    class TaskCardEmpleado {
+        -Tarea tarea
+        -TareaDAO tareaDAO
+        -CardLayout buttonCardLayout
+        -JPanel panelBotonesWrapper
+        +TaskCardEmpleado(Tarea, TareaDAO)
+        -createPanelPendiente() JPanel
+        -createPanelEnProgreso() JPanel
+        -createPanelCompletada() JPanel
+        -createPanelPausada() JPanel
+        -iniciarTarea() void
+        -completarTarea() void
+        -pausarTarea() void
+        -enviarNotificacionCompletada() void
+        -actualizarEstadoVisual(boolean) void
+    }
+    
+    class ToggleButton {
+        -boolean selected
+        -Animator animator
+        -float animate
+        -List~ToggleListener~ events
+        +setSelected(boolean) void
+        +setSelected(boolean, boolean) void
+        +isSelected() boolean
+        +addEventToggleSelected(ToggleListener) void
+    }
+    
+    class ToggleButtonEditor {
+        -ToggleButton toggleButton
+        -JPanel panel
+        -JTable table
+        -int currentRow
+        +getCellEditorValue() Object
+        +getTableCellEditorComponent(...) Component
+        +stopCellEditing() boolean
+    }
+
+    %% ========== CAPA UI - VISTAS ==========
+    class MainForm {
+        -UsuarioDAO usuarioDAO
+        +MainForm()
+        -login() void
+    }
+    
+    class DashboardAdmin {
+        -Usuario usuario
+        +DashboardAdmin(Usuario)
+    }
+    
+    class DashboardGerente {
+        -Usuario usuario
+        +DashboardGerente(Usuario)
+    }
+    
+    class DashboardEmpleado {
+        -Usuario usuario
+        +DashboardEmpleado(Usuario)
+    }
+    
+    class formUsuarios {
+        -UsuarioDAO usuarioDAO
+        -DefaultTableModel model
+        +formUsuarios()
+        -cargarDatosConSwingWorker() void
+    }
+    
+    class formMisTareas {
+        -Usuario usuario
+        -TareaDAO tareaDAO
+        +formMisTareas(Usuario)
+        -cargarTareas() void
+    }
+    
+    class CrearTareaDialog {
+        -TareaDAO tareaDAO
+        -EquipoDAO equipoDAO
+        -UsuarioDAO usuarioDAO
+        -List~File~ archivosAdjuntos
+        +CrearTareaDialog(Frame, Usuario)
+        -crearTarea() void
+        -enviarNotificaciones() void
+    }
+    
+    class CrearUsuarioDialog {
+        -UsuarioDAO usuarioDAO
+        -String contraseñaGenerada
+        +CrearUsuarioDialog(Frame)
+        -createEmail() void
+        -sendEmail() void
+        -esEmailValido(String) boolean
+    }
+
+    %% ========== RELACIONES ==========
+    %% Modelos
+    Usuario "1" -- "*" Tarea : crea
+    Usuario "*" -- "*" Tarea : asignado a
+    Equipo "*" -- "*" Tarea : asignado a
+    Equipo "1" -- "*" Usuario : tiene miembros
+    Tarea "1" -- "*" Adjunto : tiene
+    
+    %% DAOs usan Conexion
+    UsuarioDAO ..> Conexion : usa
+    TareaDAO ..> Conexion : usa
+    EquipoDAO ..> Conexion : usa
+    
+    %% DAOs trabajan con Modelos
+    UsuarioDAO ..> Usuario : gestiona
+    TareaDAO ..> Tarea : gestiona
+    EquipoDAO ..> Equipo : gestiona
+    
+    %% Servicios
     EmailService ..> EmailTemplates : usa
+    UsuarioDAO ..> PasswordHasher : usa
+    TaskScheduler ..> TareaDAO : usa
+    
+    %% UI usa DAOs
+    formUsuarios ..> UsuarioDAO : usa
+    formMisTareas ..> TareaDAO : usa
+    CrearTareaDialog ..> TareaDAO : usa
+    CrearTareaDialog ..> EquipoDAO : usa
+    CrearTareaDialog ..> UsuarioDAO : usa
+    CrearUsuarioDialog ..> UsuarioDAO : usa
+    
+    %% UI usa Servicios
+    CrearTareaDialog ..> EmailService : usa
+    CrearUsuarioDialog ..> EmailService : usa
+    TaskCardEmpleado ..> EmailService : usa
+    
+    %% Componentes UI
+    TaskCardEmpleado ..> Tarea : muestra
+    TaskCardEmpleado ..> TareaDAO : actualiza
+    ToggleButtonEditor ..> ToggleButton : usa
+    ToggleButtonEditor ..> UsuarioDAO : usa
+    
+    %% Dashboards
+    MainForm ..> DashboardAdmin : crea
+    MainForm ..> DashboardGerente : crea
+    MainForm ..> DashboardEmpleado : crea
+    MainForm ..> UsuarioDAO : usa
 ```
+
+### Descripción de Capas
+
+#### 🎯 Capa de Modelos (Domain Layer)
+- **Usuario**: Representa un usuario del sistema con sus credenciales y rol
+- **Tarea**: Entidad principal que representa una tarea con todos sus atributos
+- **Equipo**: Agrupa usuarios bajo un líder para asignaciones grupales
+- **Adjunto**: Archivos asociados a una tarea
+
+#### 💾 Capa de Acceso a Datos (DAO Layer)
+- **Conexion**: Singleton que gestiona la conexión a PostgreSQL
+- **UsuarioDAO**: CRUD completo de usuarios, login y gestión de contraseñas
+- **TareaDAO**: Gestión completa de tareas, asignaciones y búsquedas
+- **EquipoDAO**: Gestión de equipos y sus miembros
+
+#### ⚙️ Capa de Servicios (Service Layer)
+- **EmailService**: Envío de emails con templates HTML
+- **EmailTemplates**: Generación de plantillas HTML para diferentes tipos de notificaciones
+- **PasswordHasher**: Encriptación y verificación de contraseñas con BCrypt
+- **PasswordBuilder**: Generación de contraseñas aleatorias seguras
+- **TaskScheduler**: Monitoreo de tareas próximas a vencer (Observer Pattern)
+
+#### 🎨 Capa de Presentación (UI Layer)
+- **Vistas**: Dashboards específicos por rol (Admin, Gerente, Empleado)
+- **Formularios**: Diálogos para crear/editar usuarios, tareas y equipos
+- **Componentes**: Elementos reutilizables (TaskCard, ToggleButton, Pills, etc.)
 
 ---
 
