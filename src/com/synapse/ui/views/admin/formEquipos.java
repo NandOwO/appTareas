@@ -1,0 +1,241 @@
+package com.synapse.ui.views.admin;
+
+import com.formdev.flatlaf.FlatClientProperties;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
+import com.synapse.core.models.Equipo;
+import com.synapse.core.models.Usuario;
+import com.synapse.data.dao.EquipoDAO;
+import com.synapse.ui.components.cardEquipo;
+import java.awt.CardLayout;
+import java.awt.Frame;
+import java.util.List;
+import javax.swing.SwingUtilities;
+import net.miginfocom.swing.MigLayout;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingWorker;
+
+/**
+ *
+ * @author FERNANDO
+ */
+public class formEquipos extends javax.swing.JPanel {
+// --- CONECTADO AL BACKEND ---
+
+    private final Usuario usuarioLogueado;
+    private final EquipoDAO equipoDAO;
+    // ----------------------------
+
+    /**
+     * ¡CONSTRUCTOR CORREGIDO! Recibe al Admin que ha iniciado sesión.
+     */
+    public formEquipos(Usuario usuario) {
+        this.usuarioLogueado = usuario;
+        this.equipoDAO = new EquipoDAO();
+
+        initComponents();
+        init();
+        cargarEquiposConSwingWorker();
+    }
+
+    private void init() {
+        // (Tu código de estilos... se queda igual)
+        panelGridEquipos.setLayout(new MigLayout(
+                "wrap 1, fillx, insets 10", // Layout Constraints
+                "[grow, fill]", // Column Constraints
+                "[]" // Row Constraints
+        ));
+
+        scrollEquipos.setOpaque(false);
+        scrollEquipos.getViewport().setOpaque(false);
+        scrollEquipos.setBorder(null);
+        panelGridEquipos.setOpaque(false);
+
+        scrollEquipos.getVerticalScrollBar().putClientProperty(FlatClientProperties.STYLE, ""
+                + "trackArc:999; trackInsets:3,3,3,3; thumbInsets:3,3,3,3;");
+
+        btnCrearGrande.setIcon(new FlatSVGIcon("icons/general/crear.svg", 48, 48));
+        btnCrearGrande.putClientProperty(FlatClientProperties.STYLE, ""
+                + "arc: 999;"
+                + "minimumWidth: 100;"
+                + "minimumHeight: 100;");
+
+        // Estilos para la vista "Sin Equipos"
+        lblTituloNoEquipos.setText("No se han creado equipos");
+        lblSubtituloNoEquipos.setText("Haz clic en el botón para crear el primero.");
+        lblTituloNoEquipos.putClientProperty(FlatClientProperties.STYLE, "font: bold +3");
+        lblSubtituloNoEquipos.putClientProperty(FlatClientProperties.STYLE, "foreground: $Label.secondaryForeground");
+
+        // Asignar los Action Listeners (eventos de clic)
+        btnCrearEquipo.addActionListener(e -> abrirDialogoCrear());
+        btnCrearGrande.addActionListener(e -> abrirDialogoCrear());
+    }
+
+    private void cargarEquiposConSwingWorker() {
+        // (Opcional: mostrar un "cargando" en panelGridEquipos)
+        // (Opcional: cambiar a la card de "cargando")
+
+        SwingWorker<List<Equipo>, Void> worker = new SwingWorker<List<Equipo>, Void>() {
+            @Override
+            protected List<Equipo> doInBackground() throws Exception {
+                // ESTO SE EJECUTA EN OTRO HILO
+                return equipoDAO.getEquipos(); // (Versión optimizada)
+            }
+
+            @Override
+            protected void done() {
+                // ESTO SE EJECUTA DE VUELTA EN EL HILO DE UI
+                try {
+                    List<Equipo> equipos = get();
+
+                    panelGridEquipos.removeAll();
+
+                    if (equipos == null || equipos.isEmpty()) {
+                        CardLayout cl = (CardLayout) (panelContenido.getLayout());
+                        cl.show(panelContenido, "cardNoEquipos");
+                    } else {
+                        for (Equipo equipo : equipos) {
+                            // Usamos la cardEquipo optimizada (¡ahora es rápido!)
+                            panelGridEquipos.add(new cardEquipo(equipo), "growx");
+                        }
+                        CardLayout cl = (CardLayout) (panelContenido.getLayout());
+                        cl.show(panelContenido, "cardGridEquipos");
+                    }
+
+                    panelGridEquipos.revalidate();
+                    panelGridEquipos.repaint();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        worker.execute();
+    }
+
+    /**
+     * ¡CORREGIDO! Llama al nuevo 'dialogCrearEquipo' y pasa al Admin.
+     */
+    private void abrirDialogoCrear() {
+        Frame parent = (Frame) SwingUtilities.getWindowAncestor(this);
+        dialogCrearEquipo dialog = new dialogCrearEquipo(parent, this.usuarioLogueado);
+        dialog.setVisible(true);
+
+        if (dialog.isCreadoConExito()) {
+            cargarEquiposConSwingWorker(); // <-- ¡Llama al método con SwingWorker!
+        }
+    }
+
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        panelHeader = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        btnCrearEquipo = new com.synapse.ui.components.ButtonAction();
+        panelContenido = new javax.swing.JPanel();
+        scrollEquipos = new javax.swing.JScrollPane();
+        panelGridEquipos = new javax.swing.JPanel();
+        panelNoEquipos = new javax.swing.JPanel();
+        panelCCTA = new javax.swing.JPanel();
+        btnCrearGrande = new com.synapse.ui.components.ButtonAction();
+        panelTextos = new javax.swing.JPanel();
+        lblSubtituloNoEquipos = new javax.swing.JLabel();
+        lblTituloNoEquipos = new javax.swing.JLabel();
+
+        setLayout(new java.awt.BorderLayout());
+
+        jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        jLabel1.setText("Gestion de Equipos");
+
+        btnCrearEquipo.setText("Crear Equipo");
+
+        javax.swing.GroupLayout panelHeaderLayout = new javax.swing.GroupLayout(panelHeader);
+        panelHeader.setLayout(panelHeaderLayout);
+        panelHeaderLayout.setHorizontalGroup(
+            panelHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelHeaderLayout.createSequentialGroup()
+                .addGap(53, 53, 53)
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btnCrearEquipo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(88, 88, 88))
+        );
+        panelHeaderLayout.setVerticalGroup(
+            panelHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelHeaderLayout.createSequentialGroup()
+                .addGap(29, 29, 29)
+                .addGroup(panelHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(btnCrearEquipo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        add(panelHeader, java.awt.BorderLayout.NORTH);
+
+        panelContenido.setLayout(new java.awt.CardLayout());
+
+        scrollEquipos.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
+        javax.swing.GroupLayout panelGridEquiposLayout = new javax.swing.GroupLayout(panelGridEquipos);
+        panelGridEquipos.setLayout(panelGridEquiposLayout);
+        panelGridEquiposLayout.setHorizontalGroup(
+            panelGridEquiposLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 970, Short.MAX_VALUE)
+        );
+        panelGridEquiposLayout.setVerticalGroup(
+            panelGridEquiposLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 788, Short.MAX_VALUE)
+        );
+
+        scrollEquipos.setViewportView(panelGridEquipos);
+
+        panelContenido.add(scrollEquipos, "card2");
+
+        panelNoEquipos.setOpaque(false);
+        panelNoEquipos.setLayout(new java.awt.GridBagLayout());
+
+        panelCCTA.setOpaque(false);
+        panelCCTA.setLayout(new java.awt.BorderLayout());
+
+        btnCrearGrande.setText("Crear");
+        panelCCTA.add(btnCrearGrande, java.awt.BorderLayout.NORTH);
+
+        panelTextos.setOpaque(false);
+        panelTextos.setLayout(new java.awt.BorderLayout());
+
+        lblSubtituloNoEquipos.setText("jLabel2");
+        panelTextos.add(lblSubtituloNoEquipos, java.awt.BorderLayout.CENTER);
+
+        lblTituloNoEquipos.setText("jLabel3");
+        panelTextos.add(lblTituloNoEquipos, java.awt.BorderLayout.NORTH);
+
+        panelCCTA.add(panelTextos, java.awt.BorderLayout.CENTER);
+
+        panelNoEquipos.add(panelCCTA, new java.awt.GridBagConstraints());
+
+        panelContenido.add(panelNoEquipos, "card3");
+
+        add(panelContenido, java.awt.BorderLayout.CENTER);
+    }// </editor-fold>//GEN-END:initComponents
+
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private com.synapse.ui.components.ButtonAction btnCrearEquipo;
+    private com.synapse.ui.components.ButtonAction btnCrearGrande;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel lblSubtituloNoEquipos;
+    private javax.swing.JLabel lblTituloNoEquipos;
+    private javax.swing.JPanel panelCCTA;
+    private javax.swing.JPanel panelContenido;
+    private javax.swing.JPanel panelGridEquipos;
+    private javax.swing.JPanel panelHeader;
+    private javax.swing.JPanel panelNoEquipos;
+    private javax.swing.JPanel panelTextos;
+    private javax.swing.JScrollPane scrollEquipos;
+    // End of variables declaration//GEN-END:variables
+}
