@@ -1,14 +1,11 @@
 package com.synapse.ui.components;
 
 import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import javax.swing.AbstractCellEditor;
 import javax.swing.JTable;
 import javax.swing.table.TableCellEditor;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import com.synapse.ui.components.ToggleListener;
 import com.synapse.core.models.Usuario;
 import com.synapse.data.dao.UsuarioDAO;
 import javax.swing.table.DefaultTableModel;
@@ -23,17 +20,25 @@ public class ToggleButtonEditor extends AbstractCellEditor implements TableCellE
     public ToggleButtonEditor() {
         toggleButton = new ToggleButton();
 
+        // Agregar listener para guardar inmediatamente al hacer clic
+        toggleButton.addEventToggleSelected(new ToggleListener() {
+            @Override
+            public void onSelected(boolean selected) {
+                // Detener la edición inmediatamente (esto llama a stopCellEditing())
+                SwingUtilities.invokeLater(() -> {
+                    stopCellEditing();
+                });
+            }
+
+            @Override
+            public void onAnimated(float animate) {
+                // No necesitamos hacer nada durante la animación
+            }
+        });
+
         // Contenedor para la edición
         panel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
         panel.add(toggleButton);
-    }
-
-    // Método de la interfaz ToggleListener (debes tener esta interfaz en tu
-    // proyecto)
-    public interface ToggleListener {
-        void onSelected(boolean selected);
-
-        void onAnimated(float animate);
     }
 
     @Override

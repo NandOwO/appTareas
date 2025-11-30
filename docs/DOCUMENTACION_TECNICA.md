@@ -1,528 +1,555 @@
-# Documentación Técnica - Sistema de Gestión de Tareas
+# 🏗️ Documentación Técnica - Sistema Synapse
 
-## 📋 Índice
+## Índice
 
-1. [Arquitectura del Sistema](#arquitectura-del-sistema)
-2. [Patrones de Diseño GoF](#patrones-de-diseño-gof)
-3. [Capa de Datos (DAOs)](#capa-de-datos-daos)
-4. [Capa de Servicios](#capa-de-servicios)
-5. [Sistema de Notificaciones](#sistema-de-notificaciones)
-6. [Sistema de Exportación](#sistema-de-exportación)
-7. [Base de Datos](#base-de-datos)
+1. [Arquitectura del Sistema](#1-arquitectura-del-sistema)
+2. [Tecnologías Utilizadas](#2-tecnologías-utilizadas)
+3. [Estructura del Proyecto](#3-estructura-del-proyecto)
+4. [Base de Datos](#4-base-de-datos)
+5. [Capa de Datos (DAO)](#5-capa-de-datos-dao)
+6. [Servicios](#6-servicios)
+7. [Interfaz de Usuario](#7-interfaz-de-usuario)
+8. [Seguridad](#8-seguridad)
+9. [Configuración](#9-configuración)
 
 ---
 
 ## 1. Arquitectura del Sistema
 
-### Arquitectura en Capas
+### Patrón de Arquitectura
 
-El sistema sigue una **arquitectura en capas** (Layered Architecture) que separa las responsabilidades:
+El sistema utiliza una **arquitectura en capas** (Layered Architecture):
 
 ```
 ┌─────────────────────────────────────┐
 │     Capa de Presentación (UI)      │
-│   (Swing con FlatLaf Look & Feel)  │
-└─────────────────────────────────────┘
-                 ↓
-┌─────────────────────────────────────┐
-│      Capa de Servicios (Facade)    │
-│  TareaService, UsuarioService, etc │
-└─────────────────────────────────────┘
-                 ↓
-┌─────────────────────────────────────┐
-│    Capa de Acceso a Datos (DAO)    │
-│  TareaDAO, UsuarioDAO, EquipoDAO   │
-└─────────────────────────────────────┘
-                 ↓
-┌─────────────────────────────────────┐
-│         Base de Datos               │
-│        PostgreSQL 12+               │
+│         Java Swing + FlatLaf        │
+├─────────────────────────────────────┤
+│      Capa de Lógica de Negocio     │
+│           Services Layer            │
+├─────────────────────────────────────┤
+│       Capa de Acceso a Datos       │
+│              DAO Layer              │
+├─────────────────────────────────────┤
+│         Capa de Persistencia       │
+│      PostgreSQL + JDBC Driver       │
 └─────────────────────────────────────┘
 ```
 
-### Componentes Principales
+### Principios de Diseño
 
-#### 1.1 Modelos de Dominio
-- **Tarea**: Representa una tarea del sistema
-- **Usuario**: Representa un usuario con credenciales
-- **Equipo**: Representa un equipo de trabajo
-- **Adjunto**: Metadatos de archivos adjuntos
-- **Notificacion**: Notificaciones del sistema
-
-#### 1.2 Capa de Datos (DAO)
-- **TareaDAO**: CRUD completo de tareas
-- **UsuarioDAO**: Gestión de usuarios y autenticación
-- **EquipoDAO**: Gestión de equipos y miembros
-- **AdjuntoDAO**: Gestión de metadatos de adjuntos
-- **NotificacionDAO**: Gestión de notificaciones
-
-#### 1.3 Capa de Servicios
-- **TareaService**: Orquestación de operaciones de tareas
-- **UsuarioService**: Gestión de usuarios y seguridad
-- **EquipoService**: Gestión de equipos
-- **EmailService**: Envío de notificaciones por email
-- **EmailAttachmentService**: Gestión de adjuntos por email
-
-#### 1.4 Utilidades
-- **Validator**: Validaciones centralizadas
-- **PasswordHasher**: Hash de contraseñas con BCrypt
-- **EmailConfig**: Configuración SMTP
-- **EmailTemplates**: Templates HTML para emails
+- **Separación de Responsabilidades**: Cada capa tiene una responsabilidad específica
+- **Singleton Pattern**: Para conexiones de BD y servicios
+- **DAO Pattern**: Para acceso a datos
+- **Builder Pattern**: Para construcción de objetos complejos (Tarea)
+- **MVC Pattern**: En la capa de presentación
 
 ---
 
-## 2. Patrones de Diseño GoF
+## 2. Tecnologías Utilizadas
 
-### 2.1 Singleton Pattern
+### Backend
 
-**Ubicación**: `Conexion.java`
+| Tecnología | Versión | Propósito |
+|------------|---------|-----------|
+| **Java** | 11+ | Lenguaje principal |
+| **JDBC** | 4.2 | Conexión a base de datos |
+| **PostgreSQL Driver** | 42.6.0 | Driver de PostgreSQL |
+| **BCrypt** | 0.10.2 | Encriptación de contraseñas |
+| **JavaMail** | 1.6.2 | Envío de emails |
 
-**Propósito**: Garantizar una única instancia de conexión a la base de datos.
+### Frontend
+
+| Tecnología | Versión | Propósito |
+|------------|---------|-----------|
+| **Java Swing** | Built-in | Framework de UI |
+| **FlatLaf** | 3.2.5 | Look and Feel moderno |
+| **MigLayout** | 5.3 | Gestor de layouts |
+| **Raven DateTime** | 1.0 | Selector de fechas |
+
+### Base de Datos
+
+| Tecnología | Versión | Propósito |
+|------------|---------|-----------|
+| **PostgreSQL** | 15 | Base de datos relacional |
+| **Docker** | Latest | Contenedorización de BD |
+
+### Build Tools
+
+| Herramienta | Propósito |
+|-------------|-----------|
+| **Apache Ant** | Build automation |
+| **Docker Compose** | Orquestación de contenedores |
+
+---
+
+## 3. Estructura del Proyecto
+
+```
+appTareas/
+├── src/
+│   └── com/synapse/
+│       ├── core/                    # Núcleo del sistema
+│       │   ├── models/              # Modelos de dominio
+│       │   │   ├── Usuario.java
+│       │   │   ├── Tarea.java
+│       │   │   ├── Equipo.java
+│       │   │   ├── Adjunto.java
+│       │   │   └── Rol.java
+│       │   └── services/            # Servicios de negocio
+│       │       ├── TareaService.java
+│       │       ├── UsuarioService.java
+│       │       └── notifications/
+│       │           ├── EmailService.java
+│       │           ├── EmailConfig.java
+│       │           └── EmailTemplates.java
+│       ├── data/                    # Capa de datos
+│       │   ├── dao/                 # Data Access Objects
+│       │   │   ├── TareaDAO.java
+│       │   │   ├── UsuarioDAO.java
+│       │   │   └── EquipoDAO.java
+│       │   └── database/            # Configuración de BD
+│       │       └── Conexion.java
+│       ├── ui/                      # Interfaz de usuario
+│       │   ├── views/               # Vistas por rol
+│       │   │   ├── admin/           # Vistas de administrador
+│       │   │   ├── gerente/         # Vistas de gerente
+│       │   │   ├── empleado/        # Vistas de empleado
+│       │   │   └── shared/          # Vistas compartidas
+│       │   └── components/          # Componentes reutilizables
+│       │       ├── cardEquipo.java
+│       │       ├── TaskActionsEditor.java
+│       │       └── PrioridadPillRenderer.java
+│       └── utils/                   # Utilidades
+│           ├── PasswordHasher.java
+│           └── GeneratePasswordHash.java
+├── resources/                       # Recursos
+│   ├── database/                    # Scripts SQL
+│   │   ├── schema_complete.sql
+│   │   └── test_data.sql
+│   └── images/                      # Imágenes de la app
+├── lib/                             # Librerías externas
+├── docker/                          # Configuración Docker
+│   ├── init-scripts/
+│   │   └── 01-init-db.sql
+│   └── README.md
+├── docs/                            # Documentación
+├── docker-compose.yml
+├── build.xml
+└── README.md
+```
+
+---
+
+## 4. Base de Datos
+
+### Esquema de Base de Datos
+
+#### Tablas Principales
+
+**1. roles**
+```sql
+CREATE TABLE roles (
+    id_rol SERIAL PRIMARY KEY,
+    nombre_rol VARCHAR(50) NOT NULL UNIQUE
+);
+```
+
+**2. usuarios**
+```sql
+CREATE TABLE usuarios (
+    id_usuario SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    foto_url VARCHAR(255),
+    activo BOOLEAN DEFAULT TRUE,
+    codigo_empleado VARCHAR(50) UNIQUE
+);
+```
+
+**3. credenciales**
+```sql
+CREATE TABLE credenciales (
+    id_credencial SERIAL PRIMARY KEY,
+    id_usuario INT REFERENCES usuarios(id_usuario),
+    password VARCHAR(255) NOT NULL,
+    id_rol INT NOT NULL,
+    FOREIGN KEY (id_rol) REFERENCES roles(id_rol)
+);
+```
+
+**4. equipos**
+```sql
+CREATE TABLE equipos (
+    id_equipo SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    descripcion TEXT,
+    id_lider INT,
+    activo BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (id_lider) REFERENCES usuarios(id_usuario)
+);
+```
+
+**5. equipo_miembros**
+```sql
+CREATE TABLE equipo_miembros (
+    id_equipo INT,
+    id_usuario INT,
+    PRIMARY KEY (id_equipo, id_usuario),
+    FOREIGN KEY (id_equipo) REFERENCES equipos(id_equipo) ON DELETE CASCADE,
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
+);
+```
+
+**6. tareas**
+```sql
+CREATE TABLE tareas (
+    id_tarea SERIAL PRIMARY KEY,
+    titulo VARCHAR(200) NOT NULL,
+    descripcion TEXT,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_limite TIMESTAMP,
+    id_creador INT NOT NULL,
+    id_prioridad INT DEFAULT 2,
+    id_estado INT DEFAULT 1,
+    FOREIGN KEY (id_creador) REFERENCES usuarios(id_usuario),
+    FOREIGN KEY (id_prioridad) REFERENCES prioridades(id_prioridad),
+    FOREIGN KEY (id_estado) REFERENCES estados_tarea(id_estado)
+);
+```
+
+**7. tarea_usuario**
+```sql
+CREATE TABLE tarea_usuario (
+    id_tarea INT,
+    id_usuario INT,
+    PRIMARY KEY (id_tarea, id_usuario),
+    FOREIGN KEY (id_tarea) REFERENCES tareas(id_tarea) ON DELETE CASCADE,
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
+);
+```
+
+**8. tarea_equipo**
+```sql
+CREATE TABLE tarea_equipo (
+    id_tarea INT,
+    id_equipo INT,
+    PRIMARY KEY (id_tarea, id_equipo),
+    FOREIGN KEY (id_tarea) REFERENCES tareas(id_tarea) ON DELETE CASCADE,
+    FOREIGN KEY (id_equipo) REFERENCES equipos(id_equipo) ON DELETE CASCADE
+);
+```
+
+### Diagrama de Relaciones
+
+Ver: [DIAGRAMAS_UML.md](DIAGRAMAS_UML.md)
+
+---
+
+## 5. Capa de Datos (DAO)
+
+### Patrón DAO
+
+Cada entidad tiene su propio DAO que encapsula toda la lógica de acceso a datos.
+
+#### TareaDAO
+
+**Métodos principales**:
+```java
+public class TareaDAO {
+    // CRUD básico
+    public boolean crear(Tarea tarea);
+    public Tarea obtenerPorId(int idTarea);
+    public List<Tarea> obtenerTodas();
+    public boolean actualizar(Tarea tarea);
+    public boolean eliminar(int idTarea);
+    
+    // Asignaciones
+    public List<Usuario> getUsuariosAsignadosPorTarea(int idTarea);
+    public List<Equipo> getEquiposAsignadosPorTarea(int idTarea);
+    public boolean asignarUsuario(int idTarea, int idUsuario);
+    public boolean asignarEquipo(int idTarea, int idEquipo);
+    
+    // Consultas específicas
+    public List<Tarea> getTareasPorUsuario(int idUsuario);
+    public List<Tarea> getTareasPorEquipo(int idEquipo);
+    public List<Tarea> getTareasPorCreador(int idCreador);
+}
+```
+
+#### UsuarioDAO
+
+**Métodos principales**:
+```java
+public class UsuarioDAO {
+    // CRUD
+    public boolean crear(Usuario usuario, String password, int idRol);
+    public Usuario obtenerPorId(int idUsuario);
+    public List<Usuario> getUsuarios();
+    public boolean actualizar(Usuario usuario);
+    
+    // Autenticación
+    public Usuario login(String email, String password);
+    
+    // Roles
+    public List<Usuario> getUsuariosPorRol(int idRol);
+    
+    // Búsqueda
+    public Usuario buscarPorEmail(String email);
+}
+```
+
+#### EquipoDAO
+
+**Métodos principales**:
+```java
+public class EquipoDAO {
+    // CRUD
+    public int crear(Equipo equipo);
+    public Equipo obtenerPorId(int idEquipo);
+    public List<Equipo> getEquipos();
+    public boolean actualizar(Equipo equipo);
+    public boolean eliminar(int idEquipo);
+    
+    // Miembros
+    public List<Usuario> getMiembros(int idEquipo);
+    public boolean agregarMiembro(int idEquipo, int idUsuario);
+    public boolean quitarMiembro(int idEquipo, int idUsuario);
+    public int contarMiembros(int idEquipo);
+    
+    // Consultas específicas
+    public List<Equipo> getEquiposPorLider(int idLider);
+}
+```
+
+### Gestión de Conexiones
 
 ```java
 public class Conexion {
     private static Conexion instancia;
-    private Connection conectar;
     
-    private Conexion() { }
+    // Configuración
+    private final String USUARIO = "postgres";
+    private final String CONTRASENA = "postgres";
+    private final String BD = "synapse_db";
+    private final String PUERTO = "5433";
     
-    public static Conexion getInstance() {
-        if (instancia == null) {
-            instancia = new Conexion();
-        }
-        return instancia;
-    }
-}
-```
-
-**Ventajas**:
-- Control centralizado de la conexión
-- Evita múltiples conexiones innecesarias
-- Facilita el manejo de recursos
-
----
-
-### 2.2 Builder Pattern
-
-**Ubicación**: `Tarea.java`
-
-**Propósito**: Construcción flexible de objetos Tarea con múltiples parámetros opcionales.
-
-```java
-Tarea tarea = new Tarea.Builder("Título", idCreador)
-    .descripcion("Descripción detallada")
-    .fechaLimite(fecha)
-    .idPrioridad(2)
-    .idEstado(1)
-    .build();
-```
-
-**Ventajas**:
-- Código más legible
-- Parámetros opcionales claros
-- Inmutabilidad del objeto construido
-
----
-
-### 2.3 Observer Pattern
-
-**Ubicación**: `TaskScheduler.java`, `EmailService.java`, `NotificationService.java`
-
-**Propósito**: Notificar automáticamente cuando las tareas están próximas a vencer.
-
-```java
-// Interfaz Observer
-public interface TaskObserver {
-    void onTaskDue(List<Tarea> tareas);
-}
-
-// Observador Concreto
-public class EmailService implements TaskObserver {
-    @Override
-    public void onTaskDue(List<Tarea> tareas) {
-        // Enviar emails de notificación
-    }
-}
-
-// Subject
-public class TaskScheduler {
-    private List<TaskObserver> observers = new ArrayList<>();
+    // Singleton
+    public static Conexion getInstance();
     
-    public void notifyObservers(List<Tarea> tasks) {
-        for (TaskObserver observer : observers) {
-            observer.onTaskDue(tasks);
-        }
-    }
+    // Obtener nueva conexión
+    public Connection getConnection() throws SQLException;
 }
 ```
 
-**Ventajas**:
-- Desacoplamiento entre scheduler y servicios de notificación
-- Fácil agregar nuevos tipos de notificaciones
-- Responsabilidad única
+**Importante**: Cada llamada a `getConnection()` crea una **nueva conexión**. Usar con `try-with-resources` para cerrar automáticamente.
 
 ---
 
-### 2.4 Strategy Pattern
+## 6. Servicios
 
-**Ubicación**: `IReporteStrategy.java`, `PdfStrategy.java`, `ExcelStrategy.java`, `IcsStrategy.java`
+### TareaService
 
-**Propósito**: Permitir diferentes estrategias de exportación intercambiables.
-
-```java
-// Interfaz Strategy
-public interface IReporteStrategy {
-    boolean generar(List<Tarea> tareas);
-}
-
-// Estrategias Concretas
-public class PdfStrategy implements IReporteStrategy { }
-public class ExcelStrategy implements IReporteStrategy { }
-public class IcsStrategy implements IReporteStrategy { }
-
-// Uso
-IReporteStrategy strategy = new PdfStrategy();
-strategy.generar(tareas);
-```
-
-**Ventajas**:
-- Fácil agregar nuevos formatos de exportación
-- Código más mantenible
-- Principio Open/Closed
-
----
-
-### 2.5 Facade Pattern
-
-**Ubicación**: `TareaService.java`, `UsuarioService.java`, `EquipoService.java`
-
-**Propósito**: Simplificar operaciones complejas que involucran múltiples DAOs.
+Encapsula la lógica de negocio para tareas.
 
 ```java
 public class TareaService {
     private TareaDAO tareaDAO;
-    private NotificacionDAO notificacionDAO;
-    private AdjuntoDAO adjuntoDAO;
     
-    public boolean crearTareaCompleta(Tarea tarea, Integer idUsuario, Integer idEquipo) {
-        // 1. Crear tarea
-        tareaDAO.crearTarea(tarea, idUsuario, idEquipo);
-        
-        // 2. Crear notificación
-        notificacionDAO.crearNotificacion(...);
-        
-        // 3. Procesar adjuntos
-        adjuntoDAO.agregarAdjunto(...);
-        
-        return true;
-    }
+    // Crear tarea completa con asignación
+    public boolean crearTareaCompleta(Tarea tarea, Integer idUsuario, Integer idEquipo);
+    
+    // Actualizar tarea completa
+    public boolean actualizarTareaCompleta(Tarea tarea, Integer idUsuario, Integer idEquipo);
+    
+    // Obtener tareas con información completa
+    public List<Tarea> getTareasConDetalles(int idUsuario);
 }
 ```
 
-**Ventajas**:
-- Interfaz simplificada para operaciones complejas
-- Reduce acoplamiento entre capas
-- Centraliza lógica de negocio
+### EmailService
 
----
+Gestiona el envío de notificaciones por email.
 
-## 3. Capa de Datos (DAOs)
-
-### 3.1 TareaDAO
-
-**Responsabilidades**:
-- CRUD completo de tareas
-- Búsqueda y filtrado
-- Gestión de asignaciones
-- Archivado de tareas
-
-**Métodos Principales**:
 ```java
-// CRUD
-boolean crearTarea(Tarea tarea, Integer idUsuario, Integer idEquipo)
-Tarea getTareaPorId(int idTarea)
-boolean actualizarTarea(Tarea tarea)
-boolean eliminarTarea(int idTarea)
-
-// Búsqueda y Filtros
-List<Tarea> buscarTareas(String criterio)
-List<Tarea> getTareasPorEstado(int idEstado)
-List<Tarea> getTareasPorPrioridad(int idPrioridad)
-List<Tarea> getTareasArchivadas(int idUsuario)
-
-// Asignaciones
-boolean reasignarTarea(int idTarea, Integer nuevoIdUsuario, Integer nuevoIdEquipo)
-List<Usuario> getUsuariosAsignadosPorTarea(int idTarea)
-List<Equipo> getEquiposAsignadosPorTarea(int idTarea)
-```
-
----
-
-### 3.2 UsuarioDAO
-
-**Responsabilidades**:
-- Gestión de usuarios
-- Autenticación
-- Gestión de roles
-- Cambio de contraseñas
-
-**Métodos Principales**:
-```java
-// CRUD
-boolean crearUsuario(Usuario usuario, String password, int idRol)
-Usuario getUsuarioPorId(int idUsuario)
-boolean actualizarUsuario(Usuario usuario)
-boolean eliminarUsuario(int idUsuario)
-
-// Autenticación
-Usuario login(String email, String password)
-boolean validarCredenciales(String email, String password)
-
-// Gestión de Contraseñas
-boolean cambiarPassword(int idUsuario, String oldPassword, String newPassword)
-
-// Búsqueda
-List<Usuario> buscarUsuarios(String criterio)
-Usuario getUsuarioPorEmail(String email)
-```
-
----
-
-### 3.3 EquipoDAO
-
-**Responsabilidades**:
-- CRUD de equipos
-- Gestión de miembros
-- Gestión de líderes
-
-**Métodos Principales**:
-```java
-// CRUD
-boolean crearEquipo(Equipo equipo)
-Equipo getEquipoPorId(int idEquipo)
-boolean actualizarEquipo(Equipo equipo)
-boolean eliminarEquipo(int idEquipo)
-
-// Gestión de Miembros
-boolean agregarMiembro(int idEquipo, int idUsuario)
-boolean removerMiembro(int idEquipo, int idUsuario)
-List<Usuario> getMiembros(int idEquipo)
-boolean esMiembro(int idEquipo, int idUsuario)
-
-// Gestión de Líderes
-boolean cambiarLider(int idEquipo, int nuevoIdLider)
-```
-
----
-
-## 4. Capa de Servicios
-
-### 4.1 TareaService (Facade)
-
-**Propósito**: Orquestar operaciones complejas de tareas que involucran múltiples DAOs.
-
-**Operaciones Principales**:
-
-#### Crear Tarea Completa
-```java
-public boolean crearTareaCompleta(Tarea tarea, Integer idUsuario, Integer idEquipo) {
-    // 1. Crear tarea en BD
-    // 2. Asignar a usuario/equipo
-    // 3. Crear notificación
-    // 4. Enviar email (opcional)
+public class EmailService {
+    // Enviar email de asignación
+    public boolean enviarEmailAsignacion(Tarea tarea, Usuario usuario, List<File> adjuntos);
+    
+    // Enviar email genérico con HTML
+    public boolean sendEmail(String to, String subject, String htmlBody, List<File> attachments);
+    
+    // Verificar vencimientos próximos
+    public void verificarVencimientos();
 }
 ```
 
-#### Cambiar Estado con Notificación
+**Configuración**: Ver `EmailConfig.java`
+
+### EmailTemplates
+
+Plantillas HTML para emails.
+
 ```java
-public boolean cambiarEstadoTarea(int idTarea, int nuevoEstado) {
-    // 1. Actualizar estado
-    // 2. Obtener usuarios asignados
-    // 3. Notificar a cada usuario
+public class EmailTemplates {
+    // Template de asignación de tarea
+    public static String getTemplateAsignacionTarea(
+        String nombreUsuario,
+        String tituloTarea,
+        String descripcion,
+        String fechaLimite,
+        boolean tieneAdjuntos,
+        String listaAdjuntos
+    );
 }
 ```
 
 ---
 
-### 4.2 UsuarioService (Facade)
+## 7. Interfaz de Usuario
 
-**Propósito**: Gestionar usuarios con validaciones y seguridad.
+### Estructura de Vistas
 
-**Validaciones Implementadas**:
-- Email válido (regex)
-- Contraseña mínimo 6 caracteres
-- Email único en el sistema
-- Código de empleado único
+#### Por Rol
 
----
+**Admin**:
+- `DashboardAdmin.java` - Panel principal
+- `formGestionUsuarios.java` - Gestión de usuarios
+- `formGestionEquipos.java` - Gestión de equipos
+- `dialogCrearEquipo.java` - Crear equipo
+- `dialogEditarEquipo.java` - Editar equipo
 
-### 4.3 EquipoService (Facade)
+**Gerente**:
+- `DashboardGerente.java` - Panel principal
+- `formCrearTarea.java` - Crear tarea
+- `formMisEquipos.java` - Gestionar equipos
+- `EditarTareaDialog.java` - Editar tarea
 
-**Propósito**: Gestionar equipos y sus miembros.
+**Empleado**:
+- `DashboardEmpleado.java` - Panel principal
+- `formTareas.java` - Ver tareas
+- `VerTareaDialog.java` - Ver detalles
 
-**Reglas de Negocio**:
-- Un equipo debe tener un líder
-- El líder no puede ser removido del equipo
-- Al cambiar líder, el nuevo debe ser miembro
+### Componentes Reutilizables
 
----
+**cardEquipo.java**:
+```java
+public class cardEquipo extends JPanel {
+    private Equipo equipo;
+    
+    // Botones
+    - Ver Miembros
+    - Editar Equipo
+    - Eliminar Equipo
+}
+```
 
-## 5. Sistema de Notificaciones
+**TaskActionsEditor.java**:
+```java
+public class TaskActionsEditor extends AbstractCellEditor {
+    // Renderiza botones de acción en tabla
+    - Ver
+    - Editar
+    - Eliminar
+}
+```
 
-### 5.1 EmailService
+**PrioridadPillRenderer.java**:
+```java
+public class PrioridadPillRenderer extends JLabel {
+    // Renderiza prioridad con color
+    - Baja: Verde
+    - Media: Amarillo
+    - Alta: Rojo
+}
+```
 
-**Tecnología**: JavaMail API
+### Look and Feel
 
-**Funcionalidades**:
-- Envío de emails HTML
-- Soporte para adjuntos (hasta 25 MB)
-- Templates profesionales
-- Integración con Gmail, Outlook, Yahoo
+**FlatLaf**: Tema moderno y profesional
 
-**Templates Disponibles**:
-1. **Asignación de Tarea**: Con información de adjuntos
-2. **Vencimiento Próximo**: Con horas restantes
-3. **Cambio de Estado**: Con colores según estado
-4. **Tarea Completada**: Felicitación
+```java
+// Configuración global
+FlatLightLaf.setup();
 
----
-
-### 5.2 EmailAttachmentService
-
-**Propósito**: Gestionar archivos adjuntos enviados por email.
-
-**Flujo**:
-1. Validar archivos (tamaño, extensión)
-2. Guardar metadatos en BD
-3. Enviar archivos por email
-4. Mostrar resumen en UI
-
-**Validaciones**:
-- Tamaño máximo: 25 MB total
-- Extensiones permitidas: pdf, doc, docx, xls, xlsx, jpg, png, etc.
-
----
-
-## 6. Sistema de Exportación
-
-### 6.1 PdfStrategy (iText 7)
-
-**Características**:
-- Tabla profesional con 5 columnas
-- Colores por estado y prioridad
-- Encabezados con fondo gris
-- Pie de página con marca del sistema
-
----
-
-### 6.2 ExcelStrategy (Apache POI)
-
-**Características**:
-- Hoja de cálculo con 8 columnas
-- 6 estilos personalizados
-- Auto-ajuste de columnas
-- Formato de fechas
-
----
-
-### 6.3 IcsStrategy
-
-**Características**:
-- Formato iCalendar estándar (RFC 5545)
-- Compatible con Google Calendar, Outlook
-- Eventos con fecha límite
-
----
-
-## 7. Base de Datos
-
-### 7.1 Esquema
-
-**Tablas Principales**:
-- `usuarios`: Información de usuarios
-- `credenciales`: Contraseñas y roles
-- `tareas`: Tareas del sistema
-- `equipos`: Equipos de trabajo
-- `equipo_miembros`: Relación N:M
-- `asignaciones_usuario`: Asignación de tareas a usuarios
-- `asignaciones_equipo`: Asignación de tareas a equipos
-- `adjuntos`: Metadatos de archivos
-- `notificaciones`: Notificaciones del sistema
-
-### 7.2 Índices
-
-**Optimizaciones**:
-```sql
-CREATE INDEX idx_tareas_fecha_limite ON tareas(fecha_limite);
-CREATE INDEX idx_tareas_estado ON tareas(id_estado);
-CREATE INDEX idx_usuarios_email ON usuarios(email);
-CREATE INDEX idx_notificaciones_usuario ON notificaciones(id_usuario);
+// Estilos personalizados
+component.putClientProperty(FlatClientProperties.STYLE,
+    "arc:10;borderWidth:1;focusWidth:1");
 ```
 
 ---
 
 ## 8. Seguridad
 
-### 8.1 Contraseñas
+### Encriptación de Contraseñas
 
-**Tecnología**: BCrypt (jbcrypt-0.4)
-
-**Implementación**:
-```java
-// Hash
-String hashedPassword = PasswordHasher.hashPassword(plainPassword);
-
-// Verificación
-boolean isValid = PasswordHasher.verifyPassword(plainPassword, hashedPassword);
-```
-
-**Configuración**:
-- Work factor: 12 (2^12 = 4096 iteraciones)
-- Salt automático por BCrypt
-
----
-
-### 8.2 Validaciones
-
-**Validator.java** proporciona:
-- Validación de email (regex)
-- Validación de contraseñas (mínimo 6 caracteres, letra + número)
-- Validación de archivos (tamaño, extensión)
-- Sanitización de inputs (prevención SQL injection)
-
----
-
-## 9. Dependencias
-
-### Librerías Principales
-
-| Librería | Versión | Propósito |
-|----------|---------|-----------|
-| PostgreSQL JDBC | 42.7.7 | Conexión a BD |
-| JavaMail | 1.6.2 | Envío de emails |
-| BCrypt | 0.4 | Hash de contraseñas |
-| iText 7 | 7.2.5 | Exportación PDF |
-| Apache POI | 5.2.5 | Exportación Excel |
-| FlatLaf | 3.4.1 | Look & Feel UI |
-
----
-
-## 10. Configuración
-
-### 10.1 Base de Datos
-
-**Archivo**: `Conexion.java`
+**BCrypt** con factor de trabajo 10:
 
 ```java
-private static final String CADENA = "jdbc:postgresql://localhost:5432/tareas_db";
-private static final String USUARIO = "postgres";
-private static final String CONTRASENA = "password";
+public class PasswordHasher {
+    private static final int WORK_FACTOR = 10;
+    
+    // Hashear contraseña
+    public static String hashPassword(String plainPassword) {
+        return BCrypt.hashpw(plainPassword, BCrypt.gensalt(WORK_FACTOR));
+    }
+    
+    // Verificar contraseña
+    public static boolean checkPassword(String plainPassword, String hashedPassword) {
+        return BCrypt.checkpw(plainPassword, hashedPassword);
+    }
+}
 ```
 
-### 10.2 Email
+### Autenticación
 
-**Archivo**: `EmailConfig.java`
+```java
+// Login
+Usuario usuario = usuarioDAO.login(email, password);
+if (usuario != null) {
+    // Autenticado
+    // Guardar en sesión
+}
+```
 
+### Control de Acceso
+
+- **Roles**: Admin, Gerente, Empleado
+- **Permisos**: Verificados en cada vista
+- **Sesión**: Usuario logueado guardado en memoria
+
+---
+
+## 9. Configuración
+
+### Base de Datos (Docker)
+
+**docker-compose.yml**:
+```yaml
+services:
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: synapse_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+```
+
+### Conexión a BD
+
+**Conexion.java**:
+```java
+private final String USUARIO = "postgres";
+private final String CONTRASENA = "postgres";
+private final String BD = "synapse_db";
+private final String PUERTO = "5433";
+```
+
+### Email
+
+**EmailConfig.java**:
 ```java
 private static final String SMTP_HOST = "smtp.gmail.com";
 private static final String SMTP_PORT = "587";
@@ -530,16 +557,91 @@ private static final String USERNAME = "tu-email@gmail.com";
 private static final String PASSWORD = "tu-app-password";
 ```
 
+### Build
+
+**build.xml**:
+```xml
+<project name="Synapse" default="compile">
+    <property name="src.dir" value="src"/>
+    <property name="build.dir" value="build"/>
+    <property name="lib.dir" value="lib"/>
+    
+    <target name="compile">
+        <javac srcdir="${src.dir}" destdir="${build.dir}">
+            <classpath>
+                <fileset dir="${lib.dir}" includes="**/*.jar"/>
+            </classpath>
+        </javac>
+    </target>
+</project>
+```
+
 ---
 
-## 11. Conclusión
+## Dependencias Externas
 
-El sistema implementa una arquitectura robusta y escalable utilizando:
-- ✅ 5 Patrones de Diseño GoF
-- ✅ Arquitectura en capas
-- ✅ Separación de responsabilidades
-- ✅ Código mantenible y extensible
-- ✅ Seguridad con BCrypt
-- ✅ Validaciones robustas
-- ✅ Sistema de notificaciones completo
-- ✅ Múltiples formatos de exportación
+### Librerías Requeridas
+
+```
+lib/
+├── flatlaf-3.2.5.jar              # Look and Feel
+├── miglayout-swing-5.3.jar        # Layout Manager
+├── postgresql-42.6.0.jar          # PostgreSQL Driver
+├── jbcrypt-0.4.jar                # BCrypt
+├── javax.mail.jar                 # JavaMail
+├── activation.jar                 # JavaMail Activation
+└── raven-datetime-1.0.jar         # Date Picker
+```
+
+---
+
+## Flujo de Datos
+
+### Crear Tarea
+
+```
+Usuario (Gerente)
+    ↓
+formCrearTarea.java
+    ↓
+TareaService.crearTareaCompleta()
+    ↓
+TareaDAO.crear() + asignarUsuario/Equipo()
+    ↓
+Base de Datos (INSERT)
+    ↓
+EmailService.enviarEmailAsignacion()
+    ↓
+Usuario(s) recibe(n) email
+```
+
+### Login
+
+```
+Usuario ingresa credenciales
+    ↓
+UsuarioDAO.login(email, password)
+    ↓
+BCrypt.checkpw(password, hash)
+    ↓
+Si válido: Retorna Usuario
+    ↓
+Redirige a Dashboard según rol
+```
+
+---
+
+## Mejores Prácticas Implementadas
+
+1. **Try-with-resources**: Para cerrar conexiones automáticamente
+2. **Prepared Statements**: Prevenir SQL Injection
+3. **Singleton Pattern**: Para servicios y conexiones
+4. **Builder Pattern**: Para objetos complejos
+5. **SwingWorker**: Para operaciones asíncronas en UI
+6. **Separación de capas**: UI, Servicios, DAO, BD
+
+---
+
+**Versión**: 2.0  
+**Última actualización**: Noviembre 2025  
+**Autor**: Sistema Synapse

@@ -276,6 +276,7 @@ public class CrearUsuarioDialog extends javax.swing.JDialog {
 
         @SuppressWarnings("unchecked")
         // <editor-fold defaultstate="collapsed" desc="Generated
+        // <editor-fold defaultstate="collapsed" desc="Generated
         // Code">//GEN-BEGIN:initComponents
         private void initComponents() {
 
@@ -295,9 +296,8 @@ public class CrearUsuarioDialog extends javax.swing.JDialog {
 
                 jLabel3.setText("Rol");
 
-                comboRol.setModel(
-                                new javax.swing.DefaultComboBoxModel<>(
-                                                new String[] { "Empleado", "Administrador", "Gerente" }));
+                comboRol.setModel(new javax.swing.DefaultComboBoxModel<>(
+                                new String[] { "Empleado", "Gerente", "Administrador", " " }));
 
                 btnCrearUsuario.setBackground(new java.awt.Color(0, 0, 0));
                 btnCrearUsuario.setForeground(new java.awt.Color(255, 255, 255));
@@ -322,11 +322,9 @@ public class CrearUsuarioDialog extends javax.swing.JDialog {
                                                                                                                 javax.swing.GroupLayout.DEFAULT_SIZE,
                                                                                                                 Short.MAX_VALUE))
                                                                                 .addGroup(javax.swing.GroupLayout.Alignment.TRAILING,
-                                                                                                layout
-                                                                                                                .createSequentialGroup()
-                                                                                                                .addGroup(layout
-                                                                                                                                .createParallelGroup(
-                                                                                                                                                javax.swing.GroupLayout.Alignment.TRAILING)
+                                                                                                layout.createSequentialGroup()
+                                                                                                                .addGroup(layout.createParallelGroup(
+                                                                                                                                javax.swing.GroupLayout.Alignment.TRAILING)
                                                                                                                                 .addComponent(txtEmail,
                                                                                                                                                 javax.swing.GroupLayout.Alignment.LEADING)
                                                                                                                                 .addComponent(btnCrearUsuario,
@@ -341,8 +339,7 @@ public class CrearUsuarioDialog extends javax.swing.JDialog {
                                                                                                                                 .addComponent(txtNombre,
                                                                                                                                                 javax.swing.GroupLayout.Alignment.LEADING)
                                                                                                                                 .addGroup(javax.swing.GroupLayout.Alignment.LEADING,
-                                                                                                                                                layout
-                                                                                                                                                                .createSequentialGroup()
+                                                                                                                                                layout.createSequentialGroup()
                                                                                                                                                                 .addGroup(layout.createParallelGroup(
                                                                                                                                                                                 javax.swing.GroupLayout.Alignment.TRAILING)
                                                                                                                                                                                 .addComponent(jLabel3,
@@ -411,12 +408,20 @@ public class CrearUsuarioDialog extends javax.swing.JDialog {
                 if (nombre.isEmpty() || email.isEmpty()) {
                         Notifications.getInstance().show(Notifications.Type.WARNING,
                                         Notifications.Location.TOP_CENTER,
-                                        "⚠️ Nombre y email son obligatorios");
+                                        "Nombre y email son obligatorios");
                         return;
                 }
 
-                // Obtener rol seleccionado (1=Empleado, 2=Admin, 3=Gerente)
-                int idRol = comboRol.getSelectedIndex() + 1;
+                // Validar formato de email
+                if (!esEmailValido(email)) {
+                        Notifications.getInstance().show(Notifications.Type.WARNING,
+                                        Notifications.Location.TOP_CENTER,
+                                        "Por favor ingresa un email válido");
+                        return;
+                }
+
+                int[] mapeoRoles = { 3, 2, 1 }; // Empleado=3, Gerente=2, Admin=1
+                int idRol = mapeoRoles[comboRol.getSelectedIndex()];
 
                 // Generar contraseña
                 createEmail();
@@ -436,13 +441,22 @@ public class CrearUsuarioDialog extends javax.swing.JDialog {
                         exitoso = true;
                         Notifications.getInstance().show(Notifications.Type.SUCCESS,
                                         Notifications.Location.TOP_CENTER,
-                                        "✅ Usuario creado exitosamente");
+                                        "Usuario creado exitosamente");
                         this.dispose();
                 } else {
                         Notifications.getInstance().show(Notifications.Type.ERROR,
                                         Notifications.Location.TOP_CENTER,
-                                        "❌ Error al crear usuario");
+                                        "Error al crear usuario");
                 }
+        }
+
+        /**
+         * Valida si un email tiene formato correcto
+         */
+        private boolean esEmailValido(String email) {
+                // Regex simple para validar email
+                String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+                return email.matches(emailRegex);
         }
 
         // Variables declaration - do not modify//GEN-BEGIN:variables

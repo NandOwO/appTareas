@@ -191,4 +191,46 @@ public class EmailTemplates {
                                                 "</html>",
                                 nombreUsuario, tituloTarea);
         }
+
+        /**
+         * Template para notificar al gerente que un empleado completó una tarea
+         */
+        public static String getTemplateTareaCompletadaPorEmpleado(String nombreGerente, String nombreEmpleado,
+                        String tituloTarea) {
+                return String.format(
+                                "<!DOCTYPE html>" +
+                                                "<html>" +
+                                                "<head><meta charset='UTF-8'></head>" +
+                                                "<body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>"
+                                                +
+                                                "<div style='max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;'>"
+                                                +
+                                                "<div style='background-color: #28a745; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;'>"
+                                                +
+                                                "<h1 style='margin: 0;'>✅ Tarea Completada</h1>" +
+                                                "</div>" +
+                                                "<div style='background-color: white; padding: 30px; border-radius: 0 0 5px 5px;'>"
+                                                +
+                                                "<p style='font-size: 16px;'>Hola <strong>%s</strong>,</p>" +
+                                                "<p style='font-size: 18px; color: #28a745;'><strong>¡Buenas noticias!</strong> Un empleado ha completado una tarea.</p>"
+                                                +
+                                                "<div style='background-color: #d4edda; border-left: 4px solid #28a745; padding: 20px; margin: 20px 0;'>"
+                                                +
+                                                "<h2 style='color: #155724; margin-top: 0;'>%s</h2>" +
+                                                "<p style='margin: 10px 0 0 0; color: #155724;'><strong>Completada por:</strong> %s</p>"
+                                                +
+                                                "</div>" +
+                                                "<p style='margin-top: 30px;'>Puedes revisar los detalles de la tarea en el sistema.</p>"
+                                                +
+                                                "<p style='color: #6c757d; font-size: 14px; margin-top: 30px; border-top: 1px solid #dee2e6; padding-top: 20px;'>"
+                                                +
+                                                "Este es un mensaje automático del Sistema de Gestión de Tareas Synapse."
+                                                +
+                                                "</p>" +
+                                                "</div>" +
+                                                "</div>" +
+                                                "</body>" +
+                                                "</html>",
+                                nombreGerente, tituloTarea, nombreEmpleado);
+        }
 }

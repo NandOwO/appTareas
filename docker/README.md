@@ -3,10 +3,11 @@
 ## Requisitos Previos
 - Docker Desktop instalado y ejecutándose
 - Puerto 5433 disponible (usamos 5433 para evitar conflicto con PostgreSQL local)
+- Puerto 5050 disponible (para pgAdmin)
 
 ## Inicio Rápido
 
-### 1. Iniciar la Base de Datos
+### 1. Iniciar la Base de Datos y pgAdmin
 ```bash
 docker-compose up -d
 ```
@@ -15,6 +16,45 @@ docker-compose up -d
 ```bash
 docker-compose ps
 ```
+
+Deberías ver:
+```
+NAME               IMAGE                    STATUS
+synapse_db         postgres:15-alpine       Up
+synapse_pgadmin    dpage/pgadmin4:latest    Up
+```
+
+## Acceso a los Servicios
+
+### PostgreSQL (Desde la aplicación Java)
+- **Host**: localhost
+- **Puerto**: 5433
+- **Base de Datos**: synapse_db
+- **Usuario**: postgres
+- **Contraseña**: postgres
+
+### pgAdmin (Interfaz Web)
+1. Abre tu navegador en: **http://localhost:5050**
+2. Inicia sesión con:
+   - **Email**: admin@synapse.com
+   - **Contraseña**: admin123
+
+3. **Conectar al servidor PostgreSQL**:
+   - Click derecho en "Servers" → "Register" → "Server"
+   - **Pestaña General**:
+     - Name: `Synapse DB`
+   - **Pestaña Connection**:
+     - Host: `postgres` (nombre del contenedor)
+     - Port: `5432` (puerto interno del contenedor)
+     - Database: `synapse_db`
+     - Username: `postgres`
+     - Password: `postgres`
+   - Click "Save"
+
+4. **Explorar la base de datos**:
+   - Servers → Synapse DB → Databases → synapse_db → Schemas → public → Tables
+   - Aquí verás todas las tablas: usuarios, tareas, equipos, etc.
+
 
 ### 3. Ver logs (opcional)
 ```bash

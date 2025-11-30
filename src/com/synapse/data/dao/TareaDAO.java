@@ -107,7 +107,7 @@ public class TareaDAO {
                 + "LEFT JOIN asignaciones_usuario au ON t.id_tarea = au.id_tarea "
                 + "LEFT JOIN asignaciones_equipo ae ON t.id_tarea = ae.id_tarea "
                 + "LEFT JOIN equipo_miembros em ON ae.id_equipo = em.id_equipo "
-                + "WHERE au.id_usuario = ? OR em.id_usuario = ?";
+                + "WHERE (au.id_usuario = ? OR em.id_usuario = ?) AND t.archivada = FALSE";
 
         try (Connection cn = con.getConnection(); // CORREGIDO
                 PreparedStatement ps = cn.prepareStatement(sql)) {
@@ -133,8 +133,8 @@ public class TareaDAO {
                 + "JOIN estados_tarea et ON t.id_estado = et.id_estado "
                 + "JOIN prioridades_tarea pt ON t.id_prioridad = pt.id_prioridad "
                 + "JOIN usuarios u ON t.creada_por = u.id_usuario "
-                + "WHERE t.fecha_limite BETWEEN CURRENT_TIMESTAMP AND CURRENT_TIMESTAMP + INTERVAL '1 HOUR' * ? "
-                + "AND t.id_estado != 3";
+                + "WHERE t.fecha_limite BETWEEN CURRENT_TIMESTAMP AND CURRENT_TIMESTAMP + (? || ' hours')::INTERVAL "
+                + "AND t.id_estado != 3 AND t.archivada = FALSE"; // 3 = Completada
 
         try (Connection cn = con.getConnection(); // CORREGIDO
                 PreparedStatement ps = cn.prepareStatement(sql)) {
@@ -179,7 +179,7 @@ public class TareaDAO {
                 + "LEFT JOIN asignaciones_usuario au ON t.id_tarea = au.id_tarea "
                 + "LEFT JOIN asignaciones_equipo ae ON t.id_tarea = ae.id_tarea "
                 + "LEFT JOIN equipo_miembros em ON ae.id_equipo = em.id_equipo "
-                + "WHERE (au.id_usuario = ? OR em.id_usuario = ?) "; // Parámetros 1 y 2
+                + "WHERE (au.id_usuario = ? OR em.id_usuario = ?) AND t.archivada = FALSE "; // Parámetros 1 y 2
 
         // Añadimos los filtros de fecha dinámicamente
         if (fechaDesde != null) {
@@ -225,7 +225,7 @@ public class TareaDAO {
                 + "JOIN prioridades_tarea pt ON t.id_prioridad = pt.id_prioridad "
                 + "JOIN usuarios u ON t.creada_por = u.id_usuario "
                 + "JOIN asignaciones_equipo ae ON t.id_tarea = ae.id_tarea "
-                + "WHERE ae.id_equipo = ?";
+                + "WHERE ae.id_equipo = ? AND t.archivada = FALSE";
 
         try (Connection cn = con.getConnection(); PreparedStatement ps = cn.prepareStatement(sql)) {
 
@@ -258,6 +258,7 @@ public class TareaDAO {
                 + "LEFT JOIN usuarios asig_u ON au.id_usuario = asig_u.id_usuario "
                 + "LEFT JOIN asignaciones_equipo ae ON t.id_tarea = ae.id_tarea "
                 + "LEFT JOIN equipos asig_e ON ae.id_equipo = asig_e.id_equipo "
+                + "WHERE t.archivada = FALSE "
                 + "ORDER BY t.fecha_limite DESC";
 
         try (Connection cn = con.getConnection();
@@ -290,7 +291,7 @@ public class TareaDAO {
                 + "LEFT JOIN usuarios asig_u ON au.id_usuario = asig_u.id_usuario "
                 + "LEFT JOIN asignaciones_equipo ae ON t.id_tarea = ae.id_tarea "
                 + "LEFT JOIN equipos asig_e ON ae.id_equipo = asig_e.id_equipo "
-                + "WHERE t.creada_por = ? " // Filtro de Gerente
+                + "WHERE t.creada_por = ? AND t.archivada = FALSE" // Filtro de Gerente
                 + "ORDER BY t.fecha_limite DESC";
 
         try (Connection cn = con.getConnection(); PreparedStatement ps = cn.prepareStatement(sql)) {
@@ -401,8 +402,7 @@ public class TareaDAO {
                 + "JOIN estados_tarea et ON t.id_estado = et.id_estado "
                 + "JOIN prioridades_tarea pt ON t.id_prioridad = pt.id_prioridad "
                 + "JOIN usuarios u ON t.creada_por = u.id_usuario "
-                + "WHERE (LOWER(t.titulo) LIKE LOWER(?) OR LOWER(t.descripcion) LIKE LOWER(?)) "
-                + "AND t.archivada = FALSE "
+                + "WHERE (LOWER(t.titulo) LIKE LOWER(?) OR LOWER(t.descripcion) LIKE LOWER(?)) AND t.archivada = FALSE "
                 + "ORDER BY t.fecha_limite DESC";
 
         try (Connection cn = con.getConnection(); PreparedStatement ps = cn.prepareStatement(sql)) {

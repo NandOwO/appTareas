@@ -1,574 +1,540 @@
-# Diagramas UML - Sistema de Gestión de Tareas
+# 📊 Diagramas UML - Sistema Synapse
 
-## 📋 Índice
+## Índice
 
-1. [Diagrama de Clases](#diagrama-de-clases)
-2. [Diagrama de Secuencia](#diagrama-de-secuencia)
-3. [Diagrama de Casos de Uso](#diagrama-de-casos-de-uso)
-4. [Diagrama de Componentes](#diagrama-de-componentes)
-5. [Diagrama de Despliegue](#diagrama-de-despliegue)
+1. [Diagrama de Casos de Uso](#1-diagrama-de-casos-de-uso)
+2. [Diagrama de Clases](#2-diagrama-de-clases)
+3. [Diagrama de Secuencia](#3-diagrama-de-secuencia)
+4. [Diagrama de Base de Datos (ER)](#4-diagrama-de-base-de-datos-er)
+5. [Diagrama de Componentes](#5-diagrama-de-componentes)
 
 ---
 
-## 1. Diagrama de Clases
+## 1. Diagrama de Casos de Uso
 
-### 1.1 Diagrama Completo del Sistema
+### Actores
+
+- **Administrador**: Gestiona usuarios y equipos
+- **Gerente**: Crea tareas y gestiona equipos
+- **Empleado**: Gestiona sus tareas asignadas
+
+### Casos de Uso
+
+```mermaid
+graph TB
+    Admin[👨‍💼 Administrador]
+    Gerente[👔 Gerente]
+    Empleado[👨‍💻 Empleado]
+    
+    Admin --> CU1[Gestionar Usuarios]
+    Admin --> CU2[Gestionar Equipos]
+    Admin --> CU3[Ver Todas las Tareas]
+    
+    Gerente --> CU4[Crear Tarea]
+    Gerente --> CU5[Editar Tarea]
+    Gerente --> CU6[Asignar Tarea]
+    Gerente --> CU7[Gestionar Mis Equipos]
+    Gerente --> CU8[Ver Mis Tareas]
+    
+    Empleado --> CU9[Ver Tareas Asignadas]
+    Empleado --> CU10[Actualizar Estado]
+    Empleado --> CU11[Ver Detalles de Tarea]
+    Empleado --> CU12[Cambiar Contraseña]
+    
+    CU6 --> CU13[Asignar a Empleado]
+    CU6 --> CU14[Asignar a Equipo]
+    
+    CU4 --> CU15[Adjuntar Archivos]
+    CU4 --> CU16[Enviar Notificación]
+```
+
+---
+
+## 2. Diagrama de Clases
+
+### Modelos de Dominio
 
 ```mermaid
 classDiagram
-    %% Modelos de Dominio
-    class Tarea {
-        -int idTarea
-        -String titulo
-        -String descripcion
-        -Date fechaCreacion
-        -Date fechaLimite
-        -int idEstado
-        -int idPrioridad
-        -int creadaPor
-        -boolean archivada
-        +getTitulo() String
-        +setTitulo(String)
-        +build() Tarea
-    }
-
     class Usuario {
         -int idUsuario
         -String nombre
         -String email
-        -String codigoEmpleado
-        -String telefono
+        -String fotoUrl
         -boolean activo
-        +getNombre() String
-        +getEmail() String
-        +setNombre(String)
+        -String codigoEmpleado
+        -int idRol
+        -String nombreRol
+        +Usuario(Builder)
+        +getters()
+        +setters()
     }
-
+    
+    class Tarea {
+        -int idTarea
+        -String titulo
+        -String descripcion
+        -Timestamp fechaCreacion
+        -Timestamp fechaLimite
+        -int idCreador
+        -int idPrioridad
+        -int idEstado
+        -Usuario creador
+        -List~Usuario~ usuariosAsignados
+        -List~Equipo~ equiposAsignados
+        -List~Adjunto~ adjuntos
+        +Tarea(Builder)
+        +getters()
+        +setters()
+    }
+    
     class Equipo {
         -int idEquipo
         -String nombre
         -String descripcion
         -int idLider
         -boolean activo
-        +getNombre() String
-        +getIdLider() int
-        +setNombre(String)
+        -Usuario lider
+        -List~Usuario~ miembros
+        +Equipo()
+        +getters()
+        +setters()
     }
-
+    
     class Adjunto {
         -int idAdjunto
         -int idTarea
         -String nombreArchivo
         -String rutaArchivo
         -String tipoArchivo
-        -long tamanioBytes
-        -Date fechaSubida
-        +getNombreArchivo() String
-        +getTamanioBytes() long
+        -Timestamp fechaSubida
+        +Adjunto()
+        +getters()
+        +setters()
     }
+    
+    Usuario "1" -- "*" Tarea : crea
+    Usuario "*" -- "*" Tarea : asignado a
+    Equipo "*" -- "*" Tarea : asignado a
+    Equipo "1" -- "*" Usuario : tiene miembros
+    Tarea "1" -- "*" Adjunto : tiene
+```
 
-    class Notificacion {
-        -int idNotificacion
-        -int idUsuario
-        -int idTarea
-        -String mensaje
-        -Date fechaCreacion
-        -boolean leida
-        +getMensaje() String
-        +isLeida() boolean
-        +marcarComoLeida()
-    }
+### Capa DAO
 
-    %% DAOs
+```mermaid
+classDiagram
     class TareaDAO {
-        -Conexion con
-        +crearTarea(Tarea, Integer, Integer) boolean
-        +getTareaPorId(int) Tarea
-        +actualizarTarea(Tarea) boolean
-        +eliminarTarea(int) boolean
-        +buscarTareas(String) List~Tarea~
-        +archivarTarea(int) boolean
-        +reasignarTarea(int, Integer, Integer) boolean
+        +boolean crear(Tarea)
+        +Tarea obtenerPorId(int)
+        +List~Tarea~ obtenerTodas()
+        +boolean actualizar(Tarea)
+        +boolean eliminar(int)
+        +List~Usuario~ getUsuariosAsignadosPorTarea(int)
+        +List~Equipo~ getEquiposAsignadosPorTarea(int)
+        +boolean asignarUsuario(int, int)
+        +boolean asignarEquipo(int, int)
     }
-
+    
     class UsuarioDAO {
-        -Conexion con
-        +crearUsuario(Usuario, String, int) boolean
-        +getUsuarioPorId(int) Usuario
-        +actualizarUsuario(Usuario) boolean
-        +eliminarUsuario(int) boolean
-        +login(String, String) Usuario
-        +cambiarPassword(int, String, String) boolean
-        +buscarUsuarios(String) List~Usuario~
+        +boolean crear(Usuario, String, int)
+        +Usuario obtenerPorId(int)
+        +List~Usuario~ getUsuarios()
+        +boolean actualizar(Usuario)
+        +Usuario login(String, String)
+        +List~Usuario~ getUsuariosPorRol(int)
     }
-
+    
     class EquipoDAO {
-        -Conexion con
-        +crearEquipo(Equipo) boolean
-        +getEquipoPorId(int) Equipo
-        +actualizarEquipo(Equipo) boolean
-        +eliminarEquipo(int) boolean
-        +agregarMiembro(int, int) boolean
-        +removerMiembro(int, int) boolean
-        +cambiarLider(int, int) boolean
+        +int crear(Equipo)
+        +Equipo obtenerPorId(int)
+        +List~Equipo~ getEquipos()
+        +boolean actualizar(Equipo)
+        +boolean eliminar(int)
+        +List~Usuario~ getMiembros(int)
+        +boolean agregarMiembro(int, int)
+        +boolean quitarMiembro(int, int)
+        +List~Equipo~ getEquiposPorLider(int)
     }
-
-    %% Servicios
-    class TareaService {
-        -TareaDAO tareaDAO
-        -NotificacionDAO notificacionDAO
-        -AdjuntoDAO adjuntoDAO
-        +crearTareaCompleta(Tarea, Integer, Integer) boolean
-        +modificarTarea(Tarea) boolean
-        +archivarTarea(int, String) boolean
-        +cambiarEstadoTarea(int, int) boolean
-        +reasignarTarea(int, Integer, Integer) boolean
-    }
-
-    class UsuarioService {
-        -UsuarioDAO usuarioDAO
-        +crearUsuarioCompleto(Usuario, String, int) boolean
-        +actualizarPerfil(Usuario) boolean
-        +cambiarPasswordSeguro(int, String, String) boolean
-        +login(String, String) Usuario
-        +buscarUsuarios(String) List~Usuario~
-    }
-
-    class EquipoService {
-        -EquipoDAO equipoDAO
-        -UsuarioDAO usuarioDAO
-        +crearEquipoCompleto(Equipo, List~Integer~) boolean
-        +agregarMiembrosAlEquipo(int, List~Integer~) boolean
-        +removerMiembroDelEquipo(int, int) boolean
-        +cambiarLider(int, int) boolean
-    }
-
-    %% Patrones
+    
     class Conexion {
         -static Conexion instancia
-        -Connection conectar
-        -Conexion()
-        +static getInstance() Conexion
-        +getConnection() Connection
+        -String USUARIO
+        -String CONTRASENA
+        -String BD
+        -String PUERTO
+        +static getInstance()
+        +Connection getConnection()
     }
+    
+    TareaDAO ..> Conexion : usa
+    UsuarioDAO ..> Conexion : usa
+    EquipoDAO ..> Conexion : usa
+```
 
-    class TaskObserver {
-        <<interface>>
-        +onTaskDue(List~Tarea~)
-    }
+### Servicios
 
-    class EmailService {
+```mermaid
+classDiagram
+    class TareaService {
         -TareaDAO tareaDAO
-        +onTaskDue(List~Tarea~)
-        +sendEmail(String, String, String, List~File~) boolean
-        +enviarEmailAsignacion(Tarea, Usuario, List~File~) boolean
+        +boolean crearTareaCompleta(Tarea, Integer, Integer)
+        +boolean actualizarTareaCompleta(Tarea, Integer, Integer)
+        +List~Tarea~ getTareasConDetalles(int)
     }
-
-    class IReporteStrategy {
-        <<interface>>
-        +generar(List~Tarea~) boolean
+    
+    class EmailService {
+        +boolean enviarEmailAsignacion(Tarea, Usuario, List~File~)
+        +boolean sendEmail(String, String, String, List~File~)
+        +void verificarVencimientos()
     }
-
-    class PdfStrategy {
-        +generar(List~Tarea~) boolean
+    
+    class EmailTemplates {
+        +static String getTemplateAsignacionTarea(...)
     }
-
-    class ExcelStrategy {
-        +generar(List~Tarea~) boolean
+    
+    class PasswordHasher {
+        +static String hashPassword(String)
+        +static boolean checkPassword(String, String)
     }
-
-    %% Relaciones
-    TareaDAO --> Tarea : manages
-    UsuarioDAO --> Usuario : manages
-    EquipoDAO --> Equipo : manages
     
-    TareaService --> TareaDAO : uses
-    TareaService --> NotificacionDAO : uses
-    UsuarioService --> UsuarioDAO : uses
-    EquipoService --> EquipoDAO : uses
-    EquipoService --> UsuarioDAO : uses
-    
-    TareaDAO --> Conexion : uses
-    UsuarioDAO --> Conexion : uses
-    EquipoDAO --> Conexion : uses
-    
-    EmailService ..|> TaskObserver : implements
-    EmailService --> TareaDAO : uses
-    
-    PdfStrategy ..|> IReporteStrategy : implements
-    ExcelStrategy ..|> IReporteStrategy : implements
-    
-    Tarea "1" -- "*" Adjunto : has
-    Usuario "1" -- "*" Notificacion : receives
-    Tarea "1" -- "*" Notificacion : generates
+    TareaService ..> TareaDAO : usa
+    EmailService ..> EmailTemplates : usa
 ```
 
 ---
 
-## 2. Diagrama de Secuencia
+## 3. Diagrama de Secuencia
 
-### 2.1 Crear Tarea Completa
+### Crear Tarea y Enviar Notificación
 
 ```mermaid
 sequenceDiagram
-    actor Usuario
-    participant UI as FormTarea
+    actor Gerente
+    participant UI as formCrearTarea
     participant TS as TareaService
-    participant TD as TareaDAO
-    participant ND as NotificacionDAO
+    participant DAO as TareaDAO
     participant ES as EmailService
-    participant DB as Database
-
-    Usuario->>UI: Crear nueva tarea
+    participant BD as Base de Datos
+    
+    Gerente->>UI: Completa formulario
+    Gerente->>UI: Adjunta archivos
+    Gerente->>UI: Click "Crear Tarea"
+    
     UI->>UI: Validar datos
     UI->>TS: crearTareaCompleta(tarea, idUsuario, idEquipo)
     
-    TS->>TD: crearTarea(tarea, idUsuario, idEquipo)
-    TD->>DB: INSERT INTO tareas
-    DB-->>TD: ID generado
-    TD->>DB: INSERT INTO asignaciones
-    TD-->>TS: true
+    TS->>DAO: crear(tarea)
+    DAO->>BD: INSERT INTO tareas
+    BD-->>DAO: idTarea
+    DAO-->>TS: true
     
-    TS->>ND: crearNotificacion(notif)
-    ND->>DB: INSERT INTO notificaciones
-    ND-->>TS: ID notificación
+    alt Asignación Individual
+        TS->>DAO: asignarUsuario(idTarea, idUsuario)
+        DAO->>BD: INSERT INTO tarea_usuario
+        BD-->>DAO: OK
+    else Asignación a Equipo
+        TS->>DAO: asignarEquipo(idTarea, idEquipo)
+        DAO->>BD: INSERT INTO tarea_equipo
+        BD-->>DAO: OK
+    end
     
-    TS->>ES: enviarEmailAsignacion(tarea, usuario, adjuntos)
-    ES->>ES: Generar HTML template
-    ES->>ES: Adjuntar archivos
-    ES-->>TS: Email enviado
+    TS-->>UI: true
     
-    TS-->>UI: Tarea creada exitosamente
-    UI-->>Usuario: Mostrar confirmación
+    UI->>ES: enviarEmailAsignacion(tarea, usuario, adjuntos)
+    
+    alt Asignación Individual
+        ES->>ES: Crear email HTML
+        ES->>ES: Adjuntar archivos
+        ES->>ES: Enviar email
+    else Asignación a Equipo
+        ES->>DAO: getMiembros(idEquipo)
+        DAO-->>ES: List<Usuario>
+        loop Para cada miembro
+            ES->>ES: Crear email HTML
+            ES->>ES: Adjuntar archivos
+            ES->>ES: Enviar email
+        end
+    end
+    
+    ES-->>UI: true
+    UI->>Gerente: Mostrar confirmación
 ```
 
-### 2.2 Login de Usuario
+### Login
 
 ```mermaid
 sequenceDiagram
     actor Usuario
-    participant UI as FormLogin
-    participant US as UsuarioService
-    participant UD as UsuarioDAO
+    participant UI as Login
+    participant DAO as UsuarioDAO
     participant PH as PasswordHasher
-    participant DB as Database
-
-    Usuario->>UI: Ingresar email y password
-    UI->>US: login(email, password)
+    participant BD as Base de Datos
     
-    US->>US: Validar email
-    US->>US: Validar password
+    Usuario->>UI: Ingresa email y password
+    Usuario->>UI: Click "Iniciar Sesión"
     
-    US->>UD: login(email, password)
-    UD->>DB: SELECT con JOIN credenciales
-    DB-->>UD: Datos usuario + hash
+    UI->>DAO: login(email, password)
+    DAO->>BD: SELECT * FROM usuarios WHERE email = ?
+    BD-->>DAO: Usuario + hash
     
-    UD->>PH: verifyPassword(password, hash)
-    PH-->>UD: true/false
+    DAO->>PH: checkPassword(password, hash)
+    PH-->>DAO: boolean
     
-    alt Password válido
-        UD-->>US: Usuario con rol
-        US-->>UI: Usuario autenticado
-        UI-->>Usuario: Redirigir a dashboard
-    else Password inválido
-        UD-->>US: null
-        US-->>UI: null
-        UI-->>Usuario: Error de autenticación
+    alt Password correcto
+        DAO-->>UI: Usuario
+        UI->>UI: Guardar sesión
+        UI->>Usuario: Redirigir a Dashboard
+    else Password incorrecto
+        DAO-->>UI: null
+        UI->>Usuario: Mostrar error
     end
-```
-
-### 2.3 Exportar a PDF
-
-```mermaid
-sequenceDiagram
-    actor Usuario
-    participant UI as Dashboard
-    participant PS as PdfStrategy
-    participant TD as TareaDAO
-    participant iText as iText Library
-    participant FS as FileSystem
-
-    Usuario->>UI: Click "Exportar PDF"
-    UI->>TD: getTareasPorUsuario(idUsuario)
-    TD-->>UI: List<Tarea>
-    
-    UI->>PS: generar(tareas)
-    PS->>PS: Mostrar JFileChooser
-    Usuario->>PS: Seleccionar ubicación
-    
-    PS->>iText: Crear PdfDocument
-    PS->>iText: Agregar título y fecha
-    PS->>iText: Crear tabla
-    
-    loop Para cada tarea
-        PS->>iText: Agregar fila con datos
-        PS->>iText: Aplicar colores según estado
-    end
-    
-    PS->>iText: Cerrar documento
-    iText->>FS: Guardar archivo PDF
-    
-    PS-->>UI: true
-    UI-->>Usuario: "PDF generado exitosamente"
 ```
 
 ---
 
-## 3. Diagrama de Casos de Uso
+## 4. Diagrama de Base de Datos (ER)
 
 ```mermaid
-graph TB
-    subgraph "Sistema de Gestión de Tareas"
-        UC1[Gestionar Tareas]
-        UC2[Gestionar Usuarios]
-        UC3[Gestionar Equipos]
-        UC4[Enviar Notificaciones]
-        UC5[Exportar Reportes]
-        UC6[Gestionar Adjuntos]
-        
-        UC1_1[Crear Tarea]
-        UC1_2[Modificar Tarea]
-        UC1_3[Eliminar Tarea]
-        UC1_4[Archivar Tarea]
-        UC1_5[Buscar Tareas]
-        UC1_6[Reasignar Tarea]
-        
-        UC2_1[Crear Usuario]
-        UC2_2[Modificar Usuario]
-        UC2_3[Eliminar Usuario]
-        UC2_4[Cambiar Contraseña]
-        UC2_5[Asignar Rol]
-        
-        UC3_1[Crear Equipo]
-        UC3_2[Agregar Miembros]
-        UC3_3[Remover Miembros]
-        UC3_4[Cambiar Líder]
-        
-        UC5_1[Exportar PDF]
-        UC5_2[Exportar Excel]
-        UC5_3[Exportar Calendario]
-    end
+erDiagram
+    ROLES ||--o{ CREDENCIALES : tiene
+    USUARIOS ||--o{ CREDENCIALES : tiene
+    USUARIOS ||--o{ TAREAS : crea
+    USUARIOS ||--o{ EQUIPOS : lidera
+    USUARIOS }o--o{ EQUIPO_MIEMBROS : pertenece
+    EQUIPOS }o--o{ EQUIPO_MIEMBROS : tiene
+    TAREAS }o--o{ TAREA_USUARIO : asignada_a
+    USUARIOS }o--o{ TAREA_USUARIO : asignado
+    TAREAS }o--o{ TAREA_EQUIPO : asignada_a
+    EQUIPOS }o--o{ TAREA_EQUIPO : asignado
+    TAREAS ||--o{ ADJUNTOS : tiene
+    PRIORIDADES ||--o{ TAREAS : tiene
+    ESTADOS_TAREA ||--o{ TAREAS : tiene
     
-    Admin((Administrador))
-    Gerente((Gerente))
-    Empleado((Empleado))
-    Sistema((Sistema))
+    ROLES {
+        int id_rol PK
+        string nombre_rol UK
+    }
     
-    Admin --> UC1
-    Admin --> UC2
-    Admin --> UC3
-    Admin --> UC5
+    USUARIOS {
+        int id_usuario PK
+        string nombre
+        string email UK
+        string foto_url
+        boolean activo
+        string codigo_empleado UK
+    }
     
-    Gerente --> UC1
-    Gerente --> UC3
-    Gerente --> UC5
+    CREDENCIALES {
+        int id_credencial PK
+        int id_usuario FK
+        string password
+        int id_rol FK
+    }
     
-    Empleado --> UC1_2
-    Empleado --> UC1_5
-    Empleado --> UC5
+    EQUIPOS {
+        int id_equipo PK
+        string nombre
+        string descripcion
+        int id_lider FK
+        boolean activo
+    }
     
-    Sistema --> UC4
+    EQUIPO_MIEMBROS {
+        int id_equipo PK,FK
+        int id_usuario PK,FK
+    }
     
-    UC1 --> UC1_1
-    UC1 --> UC1_2
-    UC1 --> UC1_3
-    UC1 --> UC1_4
-    UC1 --> UC1_5
-    UC1 --> UC1_6
+    TAREAS {
+        int id_tarea PK
+        string titulo
+        string descripcion
+        timestamp fecha_creacion
+        timestamp fecha_limite
+        int id_creador FK
+        int id_prioridad FK
+        int id_estado FK
+    }
     
-    UC2 --> UC2_1
-    UC2 --> UC2_2
-    UC2 --> UC2_3
-    UC2 --> UC2_4
-    UC2 --> UC2_5
+    TAREA_USUARIO {
+        int id_tarea PK,FK
+        int id_usuario PK,FK
+    }
     
-    UC3 --> UC3_1
-    UC3 --> UC3_2
-    UC3 --> UC3_3
-    UC3 --> UC3_4
+    TAREA_EQUIPO {
+        int id_tarea PK,FK
+        int id_equipo PK,FK
+    }
     
-    UC5 --> UC5_1
-    UC5 --> UC5_2
-    UC5 --> UC5_3
+    ADJUNTOS {
+        int id_adjunto PK
+        int id_tarea FK
+        string nombre_archivo
+        string ruta_archivo
+        string tipo_archivo
+        timestamp fecha_subida
+    }
     
-    UC1_1 -.-> UC6
-    UC1_1 -.-> UC4
+    PRIORIDADES {
+        int id_prioridad PK
+        string nombre_prioridad UK
+    }
+    
+    ESTADOS_TAREA {
+        int id_estado PK
+        string nombre_estado UK
+    }
 ```
 
 ---
 
-## 4. Diagrama de Componentes
+## 5. Diagrama de Componentes
 
 ```mermaid
 graph TB
     subgraph "Capa de Presentación"
-        UI[UI Components<br/>Swing + FlatLaf]
+        UI_ADMIN[Vistas Admin]
+        UI_GERENTE[Vistas Gerente]
+        UI_EMPLEADO[Vistas Empleado]
+        UI_SHARED[Vistas Compartidas]
+        COMPONENTS[Componentes Reutilizables]
     end
     
     subgraph "Capa de Servicios"
-        TS[TareaService]
-        US[UsuarioService]
-        ES_SVC[EquipoService]
-        EMAIL[EmailService]
-        ATTACH[EmailAttachmentService]
+        TAREA_SERVICE[TareaService]
+        EMAIL_SERVICE[EmailService]
+        EMAIL_TEMPLATES[EmailTemplates]
     end
     
     subgraph "Capa de Datos"
-        TD[TareaDAO]
-        UD[UsuarioDAO]
-        ED[EquipoDAO]
-        AD[AdjuntoDAO]
-        ND[NotificacionDAO]
+        TAREA_DAO[TareaDAO]
+        USUARIO_DAO[UsuarioDAO]
+        EQUIPO_DAO[EquipoDAO]
+        CONEXION[Conexion]
+    end
+    
+    subgraph "Capa de Persistencia"
+        POSTGRES[(PostgreSQL)]
+        DOCKER[Docker Container]
     end
     
     subgraph "Utilidades"
-        VAL[Validator]
-        HASH[PasswordHasher]
-        CONF[EmailConfig]
-        TEMP[EmailTemplates]
+        PASSWORD_HASHER[PasswordHasher]
+        EMAIL_CONFIG[EmailConfig]
     end
     
-    subgraph "Exportación"
-        PDF[PdfStrategy]
-        EXCEL[ExcelStrategy]
-        ICS[IcsStrategy]
-    end
+    UI_ADMIN --> TAREA_SERVICE
+    UI_GERENTE --> TAREA_SERVICE
+    UI_EMPLEADO --> TAREA_SERVICE
     
-    subgraph "Librerías Externas"
-        ITEXT[iText 7]
-        POI[Apache POI]
-        MAIL[JavaMail]
-        BCRYPT[BCrypt]
-        POSTGRES[PostgreSQL JDBC]
-    end
+    UI_ADMIN --> USUARIO_DAO
+    UI_GERENTE --> EQUIPO_DAO
     
-    subgraph "Base de Datos"
-        DB[(PostgreSQL)]
-    end
+    TAREA_SERVICE --> TAREA_DAO
+    TAREA_SERVICE --> EMAIL_SERVICE
     
-    UI --> TS
-    UI --> US
-    UI --> ES_SVC
-    UI --> PDF
-    UI --> EXCEL
-    UI --> ICS
+    EMAIL_SERVICE --> EMAIL_TEMPLATES
+    EMAIL_SERVICE --> EMAIL_CONFIG
     
-    TS --> TD
-    TS --> ND
-    TS --> AD
-    US --> UD
-    ES_SVC --> ED
-    ES_SVC --> UD
-    EMAIL --> TD
-    ATTACH --> AD
+    TAREA_DAO --> CONEXION
+    USUARIO_DAO --> CONEXION
+    EQUIPO_DAO --> CONEXION
     
-    TD --> POSTGRES
-    UD --> POSTGRES
-    ED --> POSTGRES
-    AD --> POSTGRES
-    ND --> POSTGRES
+    USUARIO_DAO --> PASSWORD_HASHER
     
-    POSTGRES --> DB
+    CONEXION --> POSTGRES
+    DOCKER --> POSTGRES
     
-    US --> VAL
-    US --> HASH
-    EMAIL --> CONF
-    EMAIL --> TEMP
-    
-    PDF --> ITEXT
-    EXCEL --> POI
-    EMAIL --> MAIL
-    HASH --> BCRYPT
+    style UI_ADMIN fill:#e1f5ff
+    style UI_GERENTE fill:#e1f5ff
+    style UI_EMPLEADO fill:#e1f5ff
+    style TAREA_SERVICE fill:#fff4e1
+    style EMAIL_SERVICE fill:#fff4e1
+    style TAREA_DAO fill:#e8f5e9
+    style USUARIO_DAO fill:#e8f5e9
+    style EQUIPO_DAO fill:#e8f5e9
+    style POSTGRES fill:#f3e5f5
 ```
 
 ---
 
-## 5. Diagrama de Despliegue
+## Flujos de Datos Principales
 
-```mermaid
-graph TB
-    subgraph "Cliente - Windows PC"
-        APP[Aplicación Java<br/>Swing Desktop]
-    end
-    
-    subgraph "Servidor de Base de Datos"
-        DBSERVER[PostgreSQL Server<br/>Puerto 5432]
-        DB[(Base de Datos<br/>tareas_db)]
-    end
-    
-    subgraph "Servidor SMTP"
-        SMTP[Gmail SMTP<br/>smtp.gmail.com:587]
-    end
-    
-    subgraph "Sistema de Archivos Local"
-        EXPORTS[Carpeta de Exportaciones<br/>PDFs, Excel, ICS]
-    end
-    
-    APP -->|JDBC<br/>TCP/IP| DBSERVER
-    DBSERVER --> DB
-    APP -->|JavaMail<br/>SMTP/TLS| SMTP
-    APP -->|Guardar archivos| EXPORTS
-    
-    style APP fill:#e1f5ff
-    style DBSERVER fill:#fff3e0
-    style SMTP fill:#f3e5f5
-    style EXPORTS fill:#e8f5e9
+### 1. Flujo de Creación de Tarea
+
+```
+Gerente → formCrearTarea → TareaService → TareaDAO → PostgreSQL
+                ↓
+         EmailService → SMTP Server → Usuario(s)
+```
+
+### 2. Flujo de Autenticación
+
+```
+Usuario → Login → UsuarioDAO → PostgreSQL
+                      ↓
+              PasswordHasher (BCrypt)
+                      ↓
+              Dashboard (según rol)
+```
+
+### 3. Flujo de Gestión de Equipos
+
+```
+Gerente → formMisEquipos → EquipoDAO → PostgreSQL
+                ↓
+         cardEquipo (componente)
+                ↓
+         Ver/Editar/Eliminar
 ```
 
 ---
 
-## 6. Descripción de Diagramas
+## Patrones de Diseño Utilizados
 
-### 6.1 Diagrama de Clases
-Muestra la estructura completa del sistema con:
-- **Modelos de dominio**: Tarea, Usuario, Equipo, Adjunto, Notificacion
-- **DAOs**: Acceso a datos para cada entidad
-- **Servicios**: Capa de lógica de negocio (Facade)
-- **Patrones**: Singleton (Conexion), Observer (TaskObserver), Strategy (IReporteStrategy)
+### 1. Singleton
+- **Dónde**: `Conexion.java`
+- **Por qué**: Una sola instancia de configuración de BD
 
-### 6.2 Diagrama de Secuencia
-Ilustra los flujos principales:
-- **Crear Tarea**: Orquestación entre servicios, DAOs y notificaciones
-- **Login**: Autenticación con hash de contraseñas
-- **Exportar PDF**: Generación de reportes con iText
+### 2. DAO (Data Access Object)
+- **Dónde**: `TareaDAO`, `UsuarioDAO`, `EquipoDAO`
+- **Por qué**: Separar lógica de acceso a datos
 
-### 6.3 Diagrama de Casos de Uso
-Define los actores y sus interacciones:
-- **Administrador**: Acceso completo
-- **Gerente**: Gestión de tareas y equipos
-- **Empleado**: Operaciones básicas
-- **Sistema**: Notificaciones automáticas
+### 3. Builder
+- **Dónde**: `Tarea.Builder`
+- **Por qué**: Construcción flexible de objetos complejos
 
-### 6.4 Diagrama de Componentes
-Muestra la arquitectura en capas:
-- **Presentación**: UI Swing
-- **Servicios**: Lógica de negocio
-- **Datos**: DAOs
-- **Utilidades**: Validación, seguridad
-- **Librerías**: Dependencias externas
+### 4. MVC (Model-View-Controller)
+- **Dónde**: Toda la aplicación
+- **Por qué**: Separación de responsabilidades
 
-### 6.5 Diagrama de Despliegue
-Describe la infraestructura:
-- **Cliente**: Aplicación desktop Java
-- **Servidor BD**: PostgreSQL
-- **Servidor SMTP**: Gmail
-- **Sistema de archivos**: Exportaciones locales
+### 5. Template Method
+- **Dónde**: `EmailTemplates`
+- **Por qué**: Plantillas reutilizables de emails
 
 ---
 
-## 7. Notas de Implementación
+## Convenciones de Código
 
-### Patrones Identificados en los Diagramas
+### Nomenclatura
 
-1. **Singleton**: Conexion (una sola instancia de conexión)
-2. **Builder**: Tarea.Builder (construcción flexible)
-3. **Observer**: TaskObserver → EmailService (notificaciones)
-4. **Strategy**: IReporteStrategy → PDF/Excel/ICS (exportación)
-5. **Facade**: TareaService, UsuarioService (simplificación)
+- **Clases**: PascalCase (`TareaService`)
+- **Métodos**: camelCase (`crearTarea`)
+- **Constantes**: UPPER_SNAKE_CASE (`SMTP_HOST`)
+- **Variables**: camelCase (`idUsuario`)
 
-### Tecnologías Clave
+### Estructura de Paquetes
 
-- **Frontend**: Java Swing + FlatLaf
-- **Backend**: Java 8+
-- **Base de Datos**: PostgreSQL 12+
-- **Librerías**: iText 7, Apache POI, JavaMail, BCrypt
+```
+com.synapse
+├── core          # Núcleo del sistema
+├── data          # Acceso a datos
+├── ui            # Interfaz de usuario
+└── utils         # Utilidades
+```
+
+---
+
+**Versión**: 2.0  
+**Última actualización**: Noviembre 2025  
+**Herramientas**: Mermaid, PlantUML

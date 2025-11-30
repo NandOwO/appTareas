@@ -5,7 +5,7 @@ echo ========================================
 echo.
 
 echo Deteniendo contenedor de PostgreSQL...
-docker-compose down
+docker-compose down 
 
 echo.
 echo Base de datos detenida correctamente
