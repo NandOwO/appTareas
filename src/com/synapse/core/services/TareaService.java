@@ -9,10 +9,6 @@ import com.synapse.data.dao.AdjuntoDAO;
 import java.util.List;
 
 /**
- * Servicio Facade para gestión de tareas
- * Patrón: Facade - Simplifica operaciones complejas que involucran múltiples
- * DAOs
- * 
  * @author FERNANDO
  */
 public class TareaService {
@@ -33,14 +29,13 @@ public class TareaService {
      */
     public boolean crearTareaCompleta(Tarea tarea, Integer idUsuarioAsignado, Integer idEquipoAsignado) {
         try {
-            // 1. Crear la tarea
+
             boolean tareaCreada = tareaDAO.crearTarea(tarea, idUsuarioAsignado, idEquipoAsignado);
 
             if (!tareaCreada) {
                 return false;
             }
 
-            // 2. Crear notificación para el usuario asignado
             if (idUsuarioAsignado != null && idUsuarioAsignado > 0) {
                 Notificacion notif = new Notificacion(
                         idUsuarioAsignado,
@@ -49,8 +44,6 @@ public class TareaService {
                 notificacionDAO.crearNotificacion(notif);
             }
 
-            // 3. Si es asignado a equipo, notificar a todos los miembros
-            // TODO: Implementar cuando tengamos EmailService
 
             return true;
         } catch (Exception e) {
@@ -64,7 +57,6 @@ public class TareaService {
      */
     public boolean modificarTarea(Tarea tarea) {
         try {
-            // Validaciones
             if (tarea == null || tarea.getIdTarea() <= 0) {
                 throw new IllegalArgumentException("Tarea inválida");
             }
@@ -73,7 +65,6 @@ public class TareaService {
                 throw new IllegalArgumentException("El título es requerido");
             }
 
-            // Actualizar
             return tareaDAO.actualizarTarea(tarea);
         } catch (Exception e) {
             e.printStackTrace();
@@ -86,17 +77,14 @@ public class TareaService {
      */
     public boolean archivarTarea(int idTarea, String motivo) {
         try {
-            // 1. Archivar la tarea
             boolean archivada = tareaDAO.archivarTarea(idTarea);
 
             if (!archivada) {
                 return false;
             }
 
-            // 2. Obtener usuarios asignados para notificar
             List<Usuario> usuariosAsignados = tareaDAO.getUsuariosAsignadosPorTarea(idTarea);
 
-            // 3. Crear notificaciones
             for (Usuario usuario : usuariosAsignados) {
                 Notificacion notif = new Notificacion(
                         usuario.getIdUsuario(),
@@ -117,16 +105,13 @@ public class TareaService {
      */
     public boolean eliminarTarea(int idTarea) {
         try {
-            // Validar que la tarea existe
             Tarea tarea = tareaDAO.getTareaPorId(idTarea);
             if (tarea == null) {
                 throw new IllegalArgumentException("Tarea no encontrada");
             }
 
-            // Eliminar adjuntos primero
             adjuntoDAO.eliminarAdjuntosPorTarea(idTarea);
 
-            // Eliminar tarea
             return tareaDAO.eliminarTarea(idTarea);
         } catch (Exception e) {
             e.printStackTrace();
@@ -139,20 +124,17 @@ public class TareaService {
      */
     public boolean cambiarEstadoTarea(int idTarea, int nuevoEstado) {
         try {
-            // 1. Obtener la tarea
             Tarea tarea = tareaDAO.getTareaPorId(idTarea);
             if (tarea == null) {
                 return false;
             }
 
-            // 2. Actualizar estado
             boolean actualizado = tareaDAO.actualizarEstadoTarea(idTarea, nuevoEstado);
 
             if (!actualizado) {
                 return false;
             }
 
-            // 3. Notificar a usuarios asignados
             List<Usuario> usuariosAsignados = tareaDAO.getUsuariosAsignadosPorTarea(idTarea);
             String mensajeEstado = obtenerMensajeEstado(nuevoEstado);
 
@@ -176,20 +158,17 @@ public class TareaService {
      */
     public boolean reasignarTarea(int idTarea, Integer nuevoIdUsuario, Integer nuevoIdEquipo) {
         try {
-            // 1. Obtener tarea
             Tarea tarea = tareaDAO.getTareaPorId(idTarea);
             if (tarea == null) {
                 return false;
             }
 
-            // 2. Reasignar
             boolean reasignada = tareaDAO.reasignarTarea(idTarea, nuevoIdUsuario, nuevoIdEquipo);
 
             if (!reasignada) {
                 return false;
             }
 
-            // 3. Notificar al nuevo usuario asignado
             if (nuevoIdUsuario != null && nuevoIdUsuario > 0) {
                 Notificacion notif = new Notificacion(
                         nuevoIdUsuario,
@@ -258,12 +237,10 @@ public class TareaService {
      */
     public boolean actualizarTareaCompleta(Tarea tarea, Integer idUsuarioAsignado, Integer idEquipoAsignado) {
         try {
-            // 1. Validar y actualizar la tarea
             if (!modificarTarea(tarea)) {
                 return false;
             }
 
-            // 2. Reasignar si es necesario
             if (idUsuarioAsignado != null || idEquipoAsignado != null) {
                 return reasignarTarea(tarea.getIdTarea(), idUsuarioAsignado, idEquipoAsignado);
             }

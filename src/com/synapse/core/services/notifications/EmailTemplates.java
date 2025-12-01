@@ -1,8 +1,6 @@
 package com.synapse.core.services.notifications;
 
 /**
- * Templates HTML para emails
- * Proporciona plantillas profesionales para diferentes tipos de notificaciones
  * 
  * @author FERNANDO
  */
