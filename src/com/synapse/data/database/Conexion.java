@@ -32,11 +32,6 @@ public class Conexion {
         return instancia;
     }
 
-    /**
-     * Obtiene una NUEVA conexión a la base de datos.
-     * IMPORTANTE: Cada llamada crea una nueva conexión.
-     * Usar con try-with-resources para cerrar automáticamente.
-     */
     public Connection getConnection() throws SQLException {
         return DriverManager.getConnection(CADENA, USUARIO, CONTRASENA);
     }

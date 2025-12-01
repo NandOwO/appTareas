@@ -13,8 +13,6 @@ import javax.mail.internet.*;
 import javax.activation.*;
 
 /**
- * Patrón Observer (Observador Concreto)
- * Envía notificaciones por correo electrónico con soporte para adjuntos
  * 
  * @author FERNANDO
  */

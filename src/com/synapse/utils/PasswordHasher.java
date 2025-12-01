@@ -3,14 +3,12 @@ package com.synapse.utils;
 import org.mindrot.jbcrypt.BCrypt;
 
 /**
- * Utilidad para hash de contraseñas usando BCrypt
- * Proporciona métodos seguros para hashear y verificar contraseñas
  * 
  * @author FERNANDO
  */
 public class PasswordHasher {
 
-    // Número de rondas de hashing (10-12 es recomendado)
+
     private static final int WORK_FACTOR = 12;
 
     /**
@@ -80,7 +78,7 @@ public class PasswordHasher {
      */
     public static String generateTemporaryPassword(int length) {
         if (length < 8) {
-            length = 8; // Mínimo 8 caracteres
+            length = 8;
         }
 
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%";
